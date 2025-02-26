@@ -1,5 +1,9 @@
 # Ignore *dataset* folders
 ./**/dataset
+datasets
+
+# Ignore logs folders
+logs
 
 # Ignore IDE specific files
 .idea*
