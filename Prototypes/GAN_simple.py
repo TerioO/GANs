@@ -37,7 +37,6 @@ def get_dataset(batch_size: int, transform: transforms):
     test_dataloader = DataLoader(dataset=test_data,
                                  batch_size=batch_size,
                                  shuffle=True)
-
     return [(train_data, test_data), (train_dataloader, test_dataloader)]
 
 def print_about_dataset(dataset: torchvision.datasets.MNIST):

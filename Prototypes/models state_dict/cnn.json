@@ -1,0 +1,15 @@
+{
+    "epochs": 10,
+    "results": [
+        "Train Loss: 1.6169 Train Acc: 0.8603",
+        "Train Loss: 1.5214 Train Acc: 0.9284",
+        "Train Loss: 1.5059 Train Acc: 0.9467",
+        "Train Loss: 1.4965 Train Acc: 0.9553",
+        "Train Loss: 1.4905 Train Acc: 0.9623",
+        "Train Loss: 1.4857 Train Acc: 0.9697",
+        "Train Loss: 1.4822 Train Acc: 0.9728",
+        "Train Loss: 1.4794 Train Acc: 0.9770",
+        "Train Loss: 1.4771 Train Acc: 0.9800",
+        "Train Loss: 1.4753 Train Acc: 0.9833"
+    ]
+}

@@ -5,6 +5,12 @@ datasets
 # Ignore logs folders
 logs
 
+# Ignore playground file
+playground.py
+
+# Ignore VScode specific
+.vscode
+
 # Ignore IDE specific files
 .idea*
 
