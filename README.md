@@ -3,12 +3,14 @@
 This repository will contain some GAN applications.
 
 ## Project structure
-- `Datasets` folder at root will contain all the datasets used for every model.
-- `logs` folder at any depth will contain all training results for the models (files used by
-tensorboard, images, text files, etc.).
-- `models state_dict` will contain the models state_dict as well as a json file with some training data
+- `Datasets` dir at root will contain all the datasets used for every model.
+- `tensorboard` dir at any depth will data for **Tensorboard**
+- `models state_dict` dir will contain the models state_dict as well as a json file with some training data
   (epochs trained, results per epoch, etc.)
-- 
+- `helpers.py` will contain reusable functions for the scripts
+
+## Datasets that need to be downloaded manually
+- Cats & Dogs
 
 ## Packages for this project
 

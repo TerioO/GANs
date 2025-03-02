@@ -14,6 +14,10 @@ import os
 import shutil
 import json
 import inspect
+import time
+from pathlib import Path
+from collections.abc import Callable
+import math
 from env import env
 
 
@@ -96,7 +100,7 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
 
     :param filename: The name of the JSON file, E.g: **data.json**
     :param json_obj: The JSON-like object you want to write in the file
-    :param skip_if_exists: Will only write if the .json file doesn't exist, otherwise function immediately retuns
+    :param skip_if_exists: Will only write if the .json file doesn't exist, otherwise function immediately retuns.
     Use with this param set to True when first creating the file
     """
 
@@ -110,3 +114,30 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
         return
     # noinspection PyTypeChecker
     json.dump(json_obj, open(path, "w"), indent=4)
+    
+def format_seconds(seconds: int):
+    """
+    Wrap your training function with this to print total training time
+    
+    :param seconds: 
+    :return: The text: "{hours}h - {minutes}m - {seconds}s"
+    """
+    hours =  math.floor(seconds/3600)
+    minutes = math.floor(seconds%3600/60)
+    seconds = math.floor(seconds%3600%60)
+    text = f"{hours}h - {minutes}min - {seconds}s"
+    return text
+
+def get_tensorboard_dir():
+    """
+    Returns the path to the **tensorboard** dir which is created relative
+    to file execution
+    
+    In ./example/test.py will return ./example/tensorboard
+    
+    In ./test.py will return ./tensorboard
+    
+    The name of the tensorboard dir can be changed in **env.py**
+    """
+    cwd = Path(inspect.stack()[1].filename).parent
+    return os.path.join(cwd, env["TENSORBOARD_DIR"])

@@ -2,8 +2,8 @@
 ./**/dataset
 datasets
 
-# Ignore logs folders
-logs
+# Ignore tensorboard folders
+**/tensorboard
 
 # Ignore playground file
 playground.py
