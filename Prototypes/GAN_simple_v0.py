@@ -1,75 +1,33 @@
+import math
+import random
+import time
+import typing
 import torch
 import torchvision
+import torchmetrics
 from torch import nn
 from torchvision import transforms
 from torch.utils.tensorboard import SummaryWriter
 from torch.utils.data import DataLoader
 from torchvision import datasets
-from torchvision.datasets import VisionDataset
-from typing import Literal
 import matplotlib.pyplot as plt
 import numpy as np
 from env import env
 from tqdm import tqdm
 import os
 import shutil
+import helpers
 
-def get_dataset(batch_size: int, transform: transforms):
-    """
-    Example:
-        - datasets, dataloaders = prepare_dataset(32)
-        - train_data, test_data = datasets
-        - train_dataloader, test_dataloader = dataloaders
-    """
-    train_data = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
-                                            train=True,
-                                            transform=transform,
-                                            target_transform=None,
-                                            download=True)
-    test_data = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
-                                           train=False,
-                                           transform=transform,
-                                           target_transform=None,
-                                           download=True)
-    train_dataloader = DataLoader(dataset=train_data,
-                                  batch_size=batch_size,
-                                  shuffle=True)
-    test_dataloader = DataLoader(dataset=test_data,
-                                 batch_size=batch_size,
-                                 shuffle=True)
-    return [(train_data, test_data), (train_dataloader, test_dataloader)]
 
-def print_about_dataset(dataset: torchvision.datasets.MNIST):
-    print(f"[MNIST DATASET] {'-' * 200}")
-
-    print(dataset)
-    img, label = dataset[0]
-    print(f"Nr. of samples: {len(dataset)}")
-    print(f"Classes: {dataset.classes}")
-    print(f"Classes to indexes: {dataset.class_to_idx}")
-    print(f"Image[0] shape = {img.shape}")
-    print(f"Image[0] label = {label}")
-
-def print_visualize_random_images(dataset: torchvision.datasets.MNIST):
-    fig = plt.figure(figsize=(12,9))
-    for i in range(1,17):
-        random_idx = torch.randint(0, len(dataset), size=[1]).item()
-        img, label = dataset[random_idx]
-        fig.add_subplot(4,4,i)
-        plt.imshow(img.permute(1,2,0), cmap="gray")
-        plt.title(dataset.classes[label])
-        plt.axis(False)
-    plt.show()
-
-class Discrimintaor(nn.Module):
+class Discriminator(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
         super().__init__()
-        self.input_shape = input_shape
-        self.hidden_units = hidden_units,
-        self.output_shape = output_shape
         self.disc = nn.Sequential(
+            nn.Flatten(),
             nn.Linear(in_features=input_shape, out_features=hidden_units),
-            nn.LeakyReLU(negative_slope=0.1),
+            nn.LeakyReLU(),
+            nn.Linear(in_features=hidden_units, out_features=hidden_units),
+            nn.LeakyReLU(),
             nn.Linear(in_features=hidden_units, out_features=output_shape),
             nn.Sigmoid()
         )
@@ -77,113 +35,213 @@ class Discrimintaor(nn.Module):
     def forward(self, x):
         return self.disc(x)
 
+
 class Generator(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
         super().__init__()
-        self.input_shape = input_shape
-        self.hidden_units = hidden_units,
-        self.output_shape = output_shape
         self.gen = nn.Sequential(
+            nn.Flatten(),
             nn.Linear(in_features=input_shape, out_features=hidden_units),
-            nn.LeakyReLU(negative_slope=0.1),
+            nn.ReLU(),
+            nn.Linear(in_features=hidden_units, out_features=hidden_units),
+            nn.ReLU(),
             nn.Linear(in_features=hidden_units, out_features=output_shape),
             nn.Tanh()
         )
 
-    def forward(self,x):
+    def forward(self, x):
         return self.gen(x)
 
-def train_loop(data_loader: DataLoader,
-               epochs: int,
-               generator: nn.Module,
-               gen_optim: torch.optim.Optimizer,
-               discriminator: nn.Module,
-               disc_optim: torch.optim.Optimizer,
-               criterion: nn.Module,
-               device: str,
-               writer_real: SummaryWriter,
-               writer_fake: SummaryWriter):
-    generator.to(device)
-    discriminator.to(device)
 
-    step = 0
+def train_GAN(epochs: int,
+              device: str,
+              dataloader,
+              gen: nn.Module,
+              gen_optim: torch.optim,
+              disc: nn.Module,
+              disc_optim: torch.optim,
+              criterion: nn.Module,
+              skip: bool = False):
+    """
+    Paper: https://arxiv.org/pdf/1406.2661
+    """
+    try:
+        if skip:
+            return
 
-    for epoch in tqdm(range(epochs)):
-        for batch_idx, (img_real, img_real_label) in enumerate(data_loader):
-            img_real = torch.as_tensor(img_real, device=device).view(-1, 28*28)
-            img_real_label = torch.as_tensor(img_real_label, device=device)
-            batch_size = img_real.shape[0]
-            # print(img_real.shape)                  # [32,1,28,28]
-            # print(img_real.view(-1, 28*28).shape)  # [32,784]
-            # print(batch_size)                      # 32
+        # Tensorboard init:
+        writer = SummaryWriter(log_dir=os.path.join(helpers.get_tensorboard_dir(), "gan_0"),
+                               filename_suffix="gan_0")
 
-            # Train discriminator
-            noise = torch.randn(batch_size, generator.input_shape).to(device)
-            fake = generator(noise)
-            disc_real = discriminator(img_real).view(-1)
-            disc_loss_real = criterion(disc_real, torch.ones_like(disc_real))
-            disc_fake = discriminator(fake).view(-1)
-            disc_loss_fake = criterion(disc_fake, torch.zeros_like(disc_fake))
-            disc_loss = (disc_loss_real + disc_loss_fake) / 2
-            disc_optim.zero_grad()
-            disc_loss.backward(retain_graph=True)
-            disc_optim.step()
+        # JSON init:
+        json_log = helpers.read_json_log("gan_0.json")
+        results = []
 
-            # Train generator
-            output = discriminator(fake).view(-1)
-            gen_loss = criterion(output, torch.ones_like(output))
-            gen_optim.zero_grad()
-            gen_loss.backward()
-            gen_optim.step()
+        # Train time start:
+        start_time = time.time()
 
-            if batch_idx == 0:
-                print(f"\nEpoch [{epoch}/{epochs}] | Loss D: {disc_loss:.4f} Loss G: {gen_loss:.4f}")
+        # Models init:
+        gen.to(device)
+        disc.to(device)
+        gen.train()
+        disc.train()
+        for epoch in tqdm(range(epochs)):
+            disc_epoch_loss, gen_epoch_loss = 0, 0
+            for _batch_idx, (img, _) in enumerate(dataloader):
+                img = torch.as_tensor(img, device=device)
 
-                with torch.inference_mode():
-                    fake = generator(torch.randn((batch_size, generator.input_shape)).to(device)).reshape(-1, 1, 28, 28)
-                    data = img_real.reshape(-1, 1, 28, 28)
-                    img_grid_fake = torchvision.utils.make_grid(fake, normalize=True)
-                    img_grid_real = torchvision.utils.make_grid(data, normalize=True)
+                # Generate a fake image from random noise:
+                input_noise = torch.randn(img.shape).to(device)
+                img_fake = gen(input_noise)
 
-                    writer_fake.add_image("MNIST Fake Images", img_grid_fake, global_step=step)
-                    writer_real.add_image("MNIST Real Images", img_grid_real, global_step=step)
-                    step += 1
+                # Update discriminator weights:
+                # y_pred_fake.shape = [batch_size, 1]
+                y_pred_fake = disc(img_fake)
+                # y_pred_real.shape = [batch_Size, 1]
+                y_pred_real = disc(img)
+                disc_loss_fake = criterion(y_pred_fake, torch.zeros(y_pred_fake.shape).to(device))
+                disc_loss_real = criterion(y_pred_real, torch.ones(y_pred_real.shape).to(device))
+                disc_loss = (disc_loss_fake + disc_loss_real) / 2
+                disc_optim.zero_grad()
+                disc_loss.backward(retain_graph=True)
+                disc_optim.step()
+
+                # Update generator weights:
+                y_pred_fake = disc(img_fake)
+                gen_loss = criterion(y_pred_fake, torch.ones( y_pred_fake.shape).to(device))
+                gen_optim.zero_grad()
+                gen_loss.backward()
+                gen_optim.step()
+
+                # Discriminator, Generator total loss:
+                disc_epoch_loss += disc_loss
+                gen_epoch_loss += gen_loss
+
+            # [EPOCH FINISH]
+            # Calculate total loss per epoch:
+            disc_epoch_loss /= len(dataloader)
+            gen_epoch_loss /= len(dataloader)
+
+            # Prepare some fake images for Tensorboard
+            with torch.inference_mode():
+                img, _ = next(iter(dataloader))
+                noise = torch.randn(img.shape).to(device)
+                img_fake = gen(noise)
+
+            # Write to Tensorboard:
+            imgs_real, _ = next(iter(dataloader))
+            imgs_fake_grid = torchvision.utils.make_grid(img_fake.view(-1, 1, 28, 28),  # arg1.shape = [BATCH_SIZE, COLOR_CHANNELS, H, W] (See docstring)
+                                                         nrow=12,
+                                                         normalize=True)    
+            imgs_real_grid = torchvision.utils.make_grid(imgs_real,  
+                                                         nrow=12,
+                                                         normalize=True)  
+            # Model was loaded, update global_step for Tensorboad correctly
+            global_step = json_log["epochs"] + epoch + 1    # Total epochs (Since model is loaded/saved)
+            print(f"\n\nGlobal Step: {global_step}")
+            writer.add_image("Fake Images", imgs_fake_grid, global_step=global_step)
+            writer.add_image("Real Images", imgs_real_grid, global_step=global_step)
+            writer.add_scalar("Generator Train Loss per epoch", gen_epoch_loss, global_step)
+            writer.add_scalar("Discriminator Train Loss per epoch", disc_epoch_loss, global_step)
+
+            # Write to JSON:
+            text = f"Disc Loss: {disc_epoch_loss:.4f} Gen Loss: {gen_epoch_loss:.4f}"
+            results.append(text)
+            print(f"Epoch [{epoch+1}/{epochs}] {text}\n")
+
+        # [TRAIN FINISH]
+        # Calculate total train time:
+        end_time = time.time()
+        text = f"Training time: {helpers.format_seconds(end_time-start_time)}"
+        print( f"\n{text}")
+
+        # Write to JSON:
+        json_log["results"] += results
+        json_log["epochs"] = len(json_log["results"])
+        json_log["train_durations"].append(f"Epochs: {epochs} {text}")
+        helpers.write_json_log("gan_0.json", json_log)
+
+        # Save state_dict:
+        helpers.save_or_load_model(gen, "gen_0", "save")
+        helpers.save_or_load_model(disc, "disc_0", "save")
+
+        # Tensorboard cleanup:
+        writer.flush()
+        writer.close()
+
+    except KeyboardInterrupt:
+        print("Keyboard Interrupt")
+
 
 def main():
+    # https://stackoverflow.com/questions/43763858/change-images-slider-step-in-tensorboard
+    # tensorboard --logdir="./Prototypes/tensorboard/gan_0" --samples_per_plugin "images=100,scalars=1000"
+    os.system("cls")
+
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    batch_size = 32
-    lr = 3e-4
-    epochs = 50
-
-    if os.path.exists("./logs"):
-        shutil.rmtree("./logs")
-    writer_fake = SummaryWriter(f"./logs/GAN_simple/fake")
-    writer_real = SummaryWriter(f"./logs/GAN_simple/real")
-
-    dataset, dataloader = get_dataset(batch_size, transforms.Compose([
+    lr = 2e-4
+    batch_size = 32 * 4
+    transform = transforms.Compose([
         transforms.ToTensor(),
         transforms.Normalize(0.5, 0.5)
-    ]))
-    train_data, test_data = dataset
-    train_dataloader, test_dataloader = dataloader
+    ])
 
-    # print_about_dataset(train_data)
-    # print_visualize_random_images(test_data)
+    train, test, train_dataloader, test_dataloader = helpers.load_MNIST(transform, batch_size)
 
-    gen_0 = Generator(input_shape=64, hidden_units=256, output_shape=28*28*1)
-    disc_0 = Discrimintaor(input_shape=28*28*1, hidden_units=256, output_shape=1)
-    loss_fn = nn.BCELoss()
-    gen_optim = torch.optim.Adam(gen_0.parameters(), lr=lr)
-    disc_optim = torch.optim.Adam(disc_0.parameters(), lr=lr)
+    gen_0 = Generator(input_shape=28*28, hidden_units=256, output_shape=28*28)
+    disc_0 = Discriminator(input_shape=28*28, hidden_units=256, output_shape=1)
+    helpers.save_or_load_model(gen_0, "gen_0", "load")
+    helpers.save_or_load_model(disc_0, "disc_0", "load")
+    helpers.write_json_log(
+        "gan_0.json",           
+        {
+            "batch_size": batch_size,
+            "lr": lr,
+            "epochs": 0,
+            "results": [], 
+            "train_durations": []
+        },
+        skip_if_exists=True
+    )
 
-    train_loop(data_loader=train_dataloader,
-               epochs=epochs,
-               generator=gen_0,
-               gen_optim=gen_optim,
-               discriminator=disc_0,
-               disc_optim=disc_optim,
-               criterion=loss_fn,
-               device=device,
-               writer_real=writer_real,
-               writer_fake=writer_fake)
+    train_GAN(epochs=200,
+              device=device,
+              dataloader=train_dataloader,
+              gen=gen_0,
+              gen_optim=torch.optim.Adam(gen_0.parameters(), lr=lr),
+              disc=disc_0,
+              disc_optim=torch.optim.Adam(disc_0.parameters(), lr=lr),
+              criterion=nn.BCELoss(),
+              skip=True)
+
+    def view_result_images(gen: nn.Module,
+                           disc: nn.Module,
+                           rows: int,
+                           cols: int):
+        img, label = next(iter(train))  # img.shape = [1,28,28]
+        plt.figure(figsize=(16, 9))
+        gen.cpu()
+        disc.cpu()
+        gen.eval()
+        disc.eval()
+        with torch.inference_mode():
+            for i in range(rows*cols):
+                noise = torch.randn(img.shape)  # noise.shape = [1,28,28]
+                noise = noise.unsqueeze(dim=0)  # noise.shape = [1,1,28,28]
+                img_fake = gen(noise)
+                is_fake_prob = disc(img_fake)
+                is_fake_prob = is_fake_prob.item() * 100
+                img_fake = img_fake.view(28, 28)  # img_fake.shape = [28,28]
+
+                plt.subplot(rows, cols, i + 1)
+                plt.imshow(img_fake, cmap="gray")
+                plt.title(f"Prob to be real: {is_fake_prob:.2f}%", fontsize=10)
+                plt.axis(False)
+            plt.show()
+    view_result_images(gen_0, disc_0, 5, 5)
+
+    def playground():
+        print()
+
+    # playground()
 main()
