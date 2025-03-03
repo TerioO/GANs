@@ -1,7 +1,14 @@
 {
     "batch_size": 128,
     "lr": 0.0002,
-    "epochs": 830,
+    "epochs": 832,
+    "about": [
+        "Trained on MNIST",
+        "Generator: 1x Flatten --> 2x Linear + LeakyReLU --> 1x Linear + Tanh",
+        "Discriminator: 1x Flatten --> 2x Linear + ReLU --> 1x Linear + Sigmoid",
+        "Generator: input_shape=28*28; hidden_units=256, output_shape=28*28",
+        "Discriminator: input_shape=28*28; hidden_units=256, output_shape=1"
+    ],
     "results": [
         "Disc Loss: 0.1656 Gen Loss: 3.0054",
         "Disc Loss: 0.1862 Gen Loss: 3.7011",
@@ -832,7 +839,9 @@
         "Disc Loss: 0.1444 Gen Loss: 3.2347",
         "Disc Loss: 0.1429 Gen Loss: 3.2225",
         "Disc Loss: 0.1418 Gen Loss: 3.2106",
-        "Disc Loss: 0.1432 Gen Loss: 3.2381"
+        "Disc Loss: 0.1432 Gen Loss: 3.2381",
+        "Disc Loss: 0.1422 Gen Loss: 3.2356",
+        "Disc Loss: 0.1425 Gen Loss: 3.2434"
     ],
     "train_durations": [
         "Epochs: 20 Training time: 0h - 2min - 52s",
@@ -841,6 +850,7 @@
         "Epochs: 100 Training time: 0h - 14min - 55s",
         "Epochs: 200 Training time: 0h - 24min - 39s",
         "Epochs: 200 Training time: 0h - 28min - 48s",
-        "Epochs: 200 Training time: 0h - 28min - 29s"
+        "Epochs: 200 Training time: 0h - 28min - 29s",
+        "Epochs: 2 Training time: 0h - 0min - 18s"
     ]
 }

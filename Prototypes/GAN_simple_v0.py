@@ -53,7 +53,8 @@ class Generator(nn.Module):
         return self.gen(x)
 
 
-def train_GAN(epochs: int,
+def train_GAN(filenames: dict,
+              epochs: int,
               device: str,
               dataloader,
               gen: nn.Module,
@@ -70,11 +71,11 @@ def train_GAN(epochs: int,
             return
 
         # Tensorboard init:
-        writer = SummaryWriter(log_dir=os.path.join(helpers.get_tensorboard_dir(), "gan_0"),
-                               filename_suffix="gan_0")
+        writer = SummaryWriter(log_dir=os.path.join(helpers.get_tensorboard_dir(), filenames["gan"]),
+                               filename_suffix=filenames["gan"])
 
         # JSON init:
-        json_log = helpers.read_json_log("gan_0.json")
+        json_log = helpers.read_json_log(filenames["gan"])
         results = []
 
         # Train time start:
@@ -159,11 +160,11 @@ def train_GAN(epochs: int,
         json_log["results"] += results
         json_log["epochs"] = len(json_log["results"])
         json_log["train_durations"].append(f"Epochs: {epochs} {text}")
-        helpers.write_json_log("gan_0.json", json_log)
+        helpers.write_json_log(filenames["gan"], json_log)
 
         # Save state_dict:
-        helpers.save_or_load_model(gen, "gen_0", "save")
-        helpers.save_or_load_model(disc, "disc_0", "save")
+        helpers.save_or_load_model(gen, filenames["generator"], "save")
+        helpers.save_or_load_model(disc, filenames["discriminator"], "save")
 
         # Tensorboard cleanup:
         writer.flush()
@@ -178,6 +179,11 @@ def main():
     # tensorboard --logdir="./Prototypes/tensorboard/gan_0" --samples_per_plugin "images=100,scalars=1000"
     os.system("cls")
 
+    filenames = {
+        "generator": "gen_1",
+        "discriminator": "disc_1",
+        "gan": "gan_1",
+    }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     lr = 2e-4
     batch_size = 32 * 4
@@ -190,10 +196,10 @@ def main():
 
     gen_0 = Generator(input_shape=28*28, hidden_units=256, output_shape=28*28)
     disc_0 = Discriminator(input_shape=28*28, hidden_units=256, output_shape=1)
-    helpers.save_or_load_model(gen_0, "gen_0", "load")
-    helpers.save_or_load_model(disc_0, "disc_0", "load")
+    helpers.save_or_load_model(gen_0, filenames["generator"], "load")
+    helpers.save_or_load_model(disc_0, filenames["discriminator"], "load")
     helpers.write_json_log(
-        "gan_0.json",           
+        filenames["gan"],           
         {
             "batch_size": batch_size,
             "lr": lr,
@@ -204,7 +210,8 @@ def main():
         skip_if_exists=True
     )
 
-    train_GAN(epochs=200,
+    train_GAN(filenames=filenames,
+              epochs=2,
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
@@ -212,7 +219,7 @@ def main():
               disc=disc_0,
               disc_optim=torch.optim.Adam(disc_0.parameters(), lr=lr),
               criterion=nn.BCELoss(),
-              skip=True)
+              skip=False)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
