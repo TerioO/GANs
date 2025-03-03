@@ -108,21 +108,19 @@ def train_GAN(filenames: IFilenames,
                 y_pred_real = disc(img)
                 disc_epoch_acc_fake += y_pred_fake.mean().item()
                 disc_epoch_acc_real += y_pred_real.mean().item()
-                disc_loss_fake = criterion(y_pred_fake, torch.zeros(y_pred_fake.shape).to(device))
-                disc_loss_real = criterion(y_pred_real, torch.ones(y_pred_real.shape).to(device))
+                disc_loss_fake = criterion(y_pred_fake, torch.zeros(y_pred_fake.shape).to(device) * 0.1)
+                disc_loss_real = criterion(y_pred_real, torch.ones(y_pred_real.shape).to(device) * 0.9)
                 disc_loss = (disc_loss_fake + disc_loss_real) / 2
                 disc_optim.zero_grad()
                 disc_loss.backward(retain_graph=True)
                 disc_optim.step()
 
                 # Update generator weights:
-                for i in range(2):
-                    img_fake_temp = gen(torch.randn(img.shape).to(device))
-                    y_pred_fake = disc(img_fake_temp)
-                    gen_loss = criterion(y_pred_fake, torch.ones(y_pred_fake.shape).to(device))
-                    gen_optim.zero_grad()
-                    gen_loss.backward()
-                    gen_optim.step()
+                y_pred_fake = disc(img_fake)
+                gen_loss = criterion(y_pred_fake, torch.ones(y_pred_fake.shape).to(device))
+                gen_optim.zero_grad()
+                gen_loss.backward()
+                gen_optim.step()
 
                 # Discriminator, Generator total loss:
                 disc_epoch_loss += disc_loss
@@ -207,7 +205,7 @@ def main():
     # tensorboard --logdir="./Prototypes/tensorboard/gan_0" --samples_per_plugin "images=100,scalars=1000"
     os.system("cls")
 
-    version = 2
+    version = 3
     filenames: IFilenames = {
         "generator": f"GAN_simple_v0_gen_{version}",
         "discriminator": f"GAN_simple_v0_disc_{version}",
@@ -215,7 +213,7 @@ def main():
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     gen_lr = 2e-4
-    disc_lr = 4e-4
+    disc_lr = 1e-4
     batch_size = 32 * 4
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -244,7 +242,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=150, 
+              epochs=300, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
