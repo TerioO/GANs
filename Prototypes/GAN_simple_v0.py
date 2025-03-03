@@ -206,9 +206,9 @@ def main():
     os.system("cls")
 
     filenames: IFilenames = {
-        "generator": "gen_01",
-        "discriminator": "disc_01",
-        "gan": "gan_01",
+        "generator": "GAN_simple_v0_gen_0",
+        "discriminator": "GAN_simple_v0_disc_0",
+        "gan": "GAN_simple_v0_gan_0",
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     lr = 2e-4
@@ -234,14 +234,6 @@ def main():
             "batch_size": batch_size,
             "lr": lr,
             "epochs": 0,
-            "about": [
-                "Trained on MNIST",
-                "Generator: 1x Flatten --> 2x Linear + LeakyReLU --> 1x Linear + Tanh",
-                "Discriminator: 1x Flatten --> 2x Linear + ReLU --> 1x Linear + Sigmoid",
-                "Generator: input_shape=28*28; hidden_units=256, output_shape=28*28",
-                "Discriminator: input_shape=28*28; hidden_units=256, output_shape=1",
-                "Only difference from gan_0 is that this one also logs Discriminator Accuracy per epoch"
-            ],
             "results": [], 
             "train_durations": []
         },
@@ -249,7 +241,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=20,
+              epochs=2, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
