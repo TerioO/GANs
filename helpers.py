@@ -17,8 +17,13 @@ import inspect
 import time
 from pathlib import Path
 from collections.abc import Callable
+from typing import TypedDict, Dict
 import math
 from env import env
+
+class ModelCheckpoint(TypedDict):
+    model_state_dict: any
+    optimizer_state_dict: any
 
 
 def load_MNIST(transform, batch_size: int):
@@ -43,15 +48,18 @@ def load_MNIST(transform, batch_size: int):
     return train, test, train_dataloader, test_dataloader
 
 
-def save_or_load_model(model: nn.Module,  filename: str, mode: Literal["save", "load"], with_print: bool = False):
+def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, model: nn.Module, optim: torch.optim.Optimizer, device: str = None, checkpoint: ModelCheckpoint = None,  with_print: bool = False):
     """
-    https://pytorch.org/tutorials/beginner/saving_loading_models.html
+    https://pytorch.org/tutorials/beginner/saving_loading_models.html#saving-loading-a-general-checkpoint-for-inference-and-or-resuming-training
 
     Utility function for loading or saving the ``state_dict`` of a model.
-
-    :param model: The model you want to save/load
-    :param filename: Name of the file which contains the state_dict
+    
     :param mode: Wether to save/load the state dict
+    :param filename: Name of the file which contains the state_dict
+    :param model: The model you want to save/load
+    :param optim: The models optimizer
+    :param device: Device (Needed when loading)
+    :param checkpoint: A dictionary with state_dicts for model and optimizer (Needed when saving)
     :param with_print: Choose if you want to print messaged in the console
     """
 
@@ -62,7 +70,7 @@ def save_or_load_model(model: nn.Module,  filename: str, mode: Literal["save", "
         os.mkdir(cwd)
     path = os.path.join(cwd, filename)
     if mode == "save":
-        torch.save(model.state_dict(), path)
+        torch.save(checkpoint, path)
         if with_print:
             print(f"Model state dict saved at location: {path}")
     elif mode == "load":
@@ -71,7 +79,10 @@ def save_or_load_model(model: nn.Module,  filename: str, mode: Literal["save", "
                 print(
                     f"Model state dict couldn't be loaded, state dict doesn't exist at: {path}")
             return
-        model.load_state_dict(torch.load(path, weights_only=True))
+        loaded_checkpoint: ModelCheckpoint = torch.load(path, weights_only=True)
+        model.to(device)  # Prevents device mismatch for the optimizer when loading
+        model.load_state_dict(loaded_checkpoint["model_state_dict"])
+        optim.load_state_dict(loaded_checkpoint["optimizer_state_dict"])
         model.eval()
         if with_print:
             print(f"Model state dicst loaded from: {path}")
