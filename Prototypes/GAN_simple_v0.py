@@ -116,11 +116,13 @@ def train_GAN(filenames: IFilenames,
                 disc_optim.step()
 
                 # Update generator weights:
-                y_pred_fake = disc(img_fake)
-                gen_loss = criterion(y_pred_fake, torch.ones( y_pred_fake.shape).to(device))
-                gen_optim.zero_grad()
-                gen_loss.backward()
-                gen_optim.step()
+                for i in range(2):
+                    img_fake_temp = gen(torch.randn(img.shape).to(device))
+                    y_pred_fake = disc(img_fake_temp)
+                    gen_loss = criterion(y_pred_fake, torch.ones(y_pred_fake.shape).to(device))
+                    gen_optim.zero_grad()
+                    gen_loss.backward()
+                    gen_optim.step()
 
                 # Discriminator, Generator total loss:
                 disc_epoch_loss += disc_loss
@@ -212,8 +214,8 @@ def main():
         "gan": f"GAN_simple_v0_gan_{version}",
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    gen_lr = 3e-4
-    disc_lr = 1e-4
+    gen_lr = 2e-4
+    disc_lr = 4e-4
     batch_size = 32 * 4
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -235,14 +237,14 @@ def main():
         {
             "batch_size": batch_size,
             "epochs": 0,
-            "results": [], 
-            "train_durations": []
+            "train_durations": [],
+            "results": []
         },
         skip_if_exists=True
     )
 
     train_GAN(filenames=filenames,
-              epochs=200, 
+              epochs=150, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
