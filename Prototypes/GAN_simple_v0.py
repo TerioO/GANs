@@ -17,7 +17,12 @@ from tqdm import tqdm
 import os
 import shutil
 import helpers
+from typing import TypedDict, Dict
 
+class IFilenames(TypedDict):
+    generator: str
+    discriminator: str
+    gan: str
 
 class Discriminator(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
@@ -53,14 +58,14 @@ class Generator(nn.Module):
         return self.gen(x)
 
 
-def train_GAN(filenames: dict,
+def train_GAN(filenames: IFilenames,
               epochs: int,
               device: str,
               dataloader,
               gen: nn.Module,
-              gen_optim: torch.optim,
+              gen_optim: torch.optim.Optimizer,
               disc: nn.Module,
-              disc_optim: torch.optim,
+              disc_optim: torch.optim.Optimizer,
               criterion: nn.Module,
               skip: bool = False):
     """
@@ -88,6 +93,7 @@ def train_GAN(filenames: dict,
         disc.train()
         for epoch in tqdm(range(epochs)):
             disc_epoch_loss, gen_epoch_loss = 0, 0
+            disc_epoch_acc_real, disc_epoch_acc_fake = 0, 0
             for _batch_idx, (img, _) in enumerate(dataloader):
                 img = torch.as_tensor(img, device=device)
 
@@ -100,6 +106,8 @@ def train_GAN(filenames: dict,
                 y_pred_fake = disc(img_fake)
                 # y_pred_real.shape = [batch_Size, 1]
                 y_pred_real = disc(img)
+                disc_epoch_acc_fake += y_pred_fake.mean().item()
+                disc_epoch_acc_real += y_pred_real.mean().item()
                 disc_loss_fake = criterion(y_pred_fake, torch.zeros(y_pred_fake.shape).to(device))
                 disc_loss_real = criterion(y_pred_real, torch.ones(y_pred_real.shape).to(device))
                 disc_loss = (disc_loss_fake + disc_loss_real) / 2
@@ -122,6 +130,8 @@ def train_GAN(filenames: dict,
             # Calculate total loss per epoch:
             disc_epoch_loss /= len(dataloader)
             gen_epoch_loss /= len(dataloader)
+            disc_epoch_acc_real /= len(dataloader)
+            disc_epoch_acc_fake /= len(dataloader)
 
             # Prepare some fake images for Tensorboard
             with torch.inference_mode():
@@ -144,9 +154,11 @@ def train_GAN(filenames: dict,
             writer.add_image("Real Images", imgs_real_grid, global_step=global_step)
             writer.add_scalar("Generator Train Loss per epoch", gen_epoch_loss, global_step)
             writer.add_scalar("Discriminator Train Loss per epoch", disc_epoch_loss, global_step)
+            writer.add_scalar("Discriminator Accuracy Real per epoch", disc_epoch_acc_real, global_step)
+            writer.add_scalar("Discriminator Accuracy Fake per epoch", disc_epoch_acc_fake, global_step)
 
             # Write to JSON:
-            text = f"Disc Loss: {disc_epoch_loss:.4f} Gen Loss: {gen_epoch_loss:.4f}"
+            text = f"Disc Loss: {disc_epoch_loss:.4f} Gen Loss: {gen_epoch_loss:.4f} Disc Acc Real: {disc_epoch_acc_real*100:.2f}% Disc Acc Fake: {disc_epoch_acc_fake*100:.2f}%"
             results.append(text)
             print(f"Epoch [{epoch+1}/{epochs}] {text}\n")
 
@@ -163,8 +175,22 @@ def train_GAN(filenames: dict,
         helpers.write_json_log(filenames["gan"], json_log)
 
         # Save state_dict:
-        helpers.save_or_load_model(gen, filenames["generator"], "save")
-        helpers.save_or_load_model(disc, filenames["discriminator"], "save")
+        helpers.save_or_load_model_checkpoint("save",
+                                              filenames["generator"],
+                                              gen, 
+                                              gen_optim, 
+                                              checkpoint={
+                                                  "model_state_dict": gen.state_dict(),
+                                                  "optimizer_state_dict": gen_optim.state_dict()
+                                              })
+        helpers.save_or_load_model_checkpoint("save",
+                                              filenames["discriminator"],
+                                              disc, 
+                                              disc_optim, 
+                                              checkpoint={
+                                                  "model_state_dict": disc.state_dict(),
+                                                  "optimizer_state_dict": disc_optim.state_dict()
+                                              })
 
         # Tensorboard cleanup:
         writer.flush()
@@ -179,10 +205,10 @@ def main():
     # tensorboard --logdir="./Prototypes/tensorboard/gan_0" --samples_per_plugin "images=100,scalars=1000"
     os.system("cls")
 
-    filenames = {
-        "generator": "gen_1",
-        "discriminator": "disc_1",
-        "gan": "gan_1",
+    filenames: IFilenames = {
+        "generator": "gen_01",
+        "discriminator": "disc_01",
+        "gan": "gan_01",
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     lr = 2e-4
@@ -196,14 +222,26 @@ def main():
 
     gen_0 = Generator(input_shape=28*28, hidden_units=256, output_shape=28*28)
     disc_0 = Discriminator(input_shape=28*28, hidden_units=256, output_shape=1)
-    helpers.save_or_load_model(gen_0, filenames["generator"], "load")
-    helpers.save_or_load_model(disc_0, filenames["discriminator"], "load")
+    
+    gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=lr)
+    disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=lr)
+    
+    helpers.save_or_load_model_checkpoint("load", filenames["generator"], gen_0, gen_0_optim, device)
+    helpers.save_or_load_model_checkpoint("load", filenames["discriminator"], disc_0, disc_0_optim, device)
     helpers.write_json_log(
         filenames["gan"],           
         {
             "batch_size": batch_size,
             "lr": lr,
             "epochs": 0,
+            "about": [
+                "Trained on MNIST",
+                "Generator: 1x Flatten --> 2x Linear + LeakyReLU --> 1x Linear + Tanh",
+                "Discriminator: 1x Flatten --> 2x Linear + ReLU --> 1x Linear + Sigmoid",
+                "Generator: input_shape=28*28; hidden_units=256, output_shape=28*28",
+                "Discriminator: input_shape=28*28; hidden_units=256, output_shape=1",
+                "Only difference from gan_0 is that this one also logs Discriminator Accuracy per epoch"
+            ],
             "results": [], 
             "train_durations": []
         },
@@ -211,13 +249,13 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=2,
+              epochs=20,
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
-              gen_optim=torch.optim.Adam(gen_0.parameters(), lr=lr),
+              gen_optim=gen_0_optim,
               disc=disc_0,
-              disc_optim=torch.optim.Adam(disc_0.parameters(), lr=lr),
+              disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
               skip=False)
 
