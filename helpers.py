@@ -81,14 +81,14 @@ def read_json_log(filename: str):
     """
     https://docs.python.org/3/library/json.html
 
-    :param filename: The name of the JSON file, E.g: data.json
+    :param filename: The name of the JSON file, E.g: **data** (.json extension appended automatically)
     :return: The JSON object as a Python dictionary
     """
 
     cwd = os.path.dirname(os.path.abspath(inspect.stack()[1].filename))
     cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"])
 
-    path = os.path.join(cwd, filename)
+    path = os.path.join(cwd, f"{filename}.json")
     if not os.path.exists(path):
         return None
     return json.load(open(path, "r"))
@@ -98,7 +98,7 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
     """
     https://docs.python.org/3/library/json.html
 
-    :param filename: The name of the JSON file, E.g: **data.json**
+    :param filename: The name of the JSON file, E.g: **data** (.json extension appended automatically)
     :param json_obj: The JSON-like object you want to write in the file
     :param skip_if_exists: Will only write if the .json file doesn't exist, otherwise function immediately retuns.
     Use with this param set to True when first creating the file
@@ -109,7 +109,7 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
 
     if not os.path.exists(cwd):
         os.mkdir(cwd)
-    path = os.path.join(cwd, filename)
+    path = os.path.join(cwd, f"{filename}.json")
     if skip_if_exists and os.path.exists(path):
         return
     # noinspection PyTypeChecker
