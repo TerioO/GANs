@@ -205,13 +205,15 @@ def main():
     # tensorboard --logdir="./Prototypes/tensorboard/gan_0" --samples_per_plugin "images=100,scalars=1000"
     os.system("cls")
 
+    version = 2
     filenames: IFilenames = {
-        "generator": "GAN_simple_v0_gen_0",
-        "discriminator": "GAN_simple_v0_disc_0",
-        "gan": "GAN_simple_v0_gan_0",
+        "generator": f"GAN_simple_v0_gen_{version}",
+        "discriminator": f"GAN_simple_v0_disc_{version}",
+        "gan": f"GAN_simple_v0_gan_{version}",
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    lr = 2e-4
+    gen_lr = 3e-4
+    disc_lr = 1e-4
     batch_size = 32 * 4
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -223,8 +225,8 @@ def main():
     gen_0 = Generator(input_shape=28*28, hidden_units=256, output_shape=28*28)
     disc_0 = Discriminator(input_shape=28*28, hidden_units=256, output_shape=1)
     
-    gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=lr)
-    disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=lr)
+    gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr)
+    disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr)
     
     helpers.save_or_load_model_checkpoint("load", filenames["generator"], gen_0, gen_0_optim, device)
     helpers.save_or_load_model_checkpoint("load", filenames["discriminator"], disc_0, disc_0_optim, device)
@@ -232,7 +234,6 @@ def main():
         filenames["gan"],           
         {
             "batch_size": batch_size,
-            "lr": lr,
             "epochs": 0,
             "results": [], 
             "train_durations": []
@@ -241,7 +242,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=2, 
+              epochs=200, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
