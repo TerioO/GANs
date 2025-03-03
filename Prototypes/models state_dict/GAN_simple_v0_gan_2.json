@@ -16,10 +16,9 @@
         "   Discriminator real certainty: 1 (discriminator is taught that real images are 100% real)",
         "   Discriminator fake certainty: 0 (discriminator is taught that fake images are 100% fake)",
         "[RESULTS]",
-        "       The generator makes progress until epoch ~150 where fake certainty is at 30%",
-        "   beyond this point there is a slow trend in which discriminator gets slowly better",
-        "   with a 30% certainty on fake images at ~400 epoch, further training I believe wouldn't",
-        "   bring better results"
+        "   Discriminator certainty fake image is fake 30% epoch ~110",
+        "   Discriminator certainty fake image is fake 15% epoch ~400",
+        "   Training for longer will lead to generation of 1s monstly"
     ],
     "train_durations": [
         "Epochs: 50 Training time: 0h - 9min - 44s",
