@@ -30,9 +30,11 @@ class Discriminator(nn.Module):
         self.disc = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=input_shape, out_features=hidden_units),
-            nn.LeakyReLU(),
+            nn.BatchNorm1d(num_features=hidden_units),
+            nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(in_features=hidden_units, out_features=hidden_units),
-            nn.LeakyReLU(),
+            nn.BatchNorm1d(num_features=hidden_units),
+            nn.LeakyReLU(negative_slope=0.2),
             nn.Linear(in_features=hidden_units, out_features=output_shape),
             nn.Sigmoid()
         )
@@ -47,8 +49,10 @@ class Generator(nn.Module):
         self.gen = nn.Sequential(
             nn.Flatten(),
             nn.Linear(in_features=input_shape, out_features=hidden_units),
+            nn.BatchNorm1d(num_features=hidden_units),
             nn.ReLU(),
             nn.Linear(in_features=hidden_units, out_features=hidden_units),
+            nn.BatchNorm1d(num_features=hidden_units),
             nn.ReLU(),
             nn.Linear(in_features=hidden_units, out_features=output_shape),
             nn.Tanh()
@@ -202,10 +206,10 @@ def train_GAN(filenames: IFilenames,
 
 def main():
     # https://stackoverflow.com/questions/43763858/change-images-slider-step-in-tensorboard
-    # tensorboard --logdir="./Prototypes/tensorboard/gan_0" --samples_per_plugin "images=100,scalars=1000"
+    # tensorboard --samples_per_plugin "images=200,scalars=1000" --logdir="./Prototypes/tensorboard/GAN_simple_v0_gan_4"
     os.system("cls")
 
-    version = 3
+    version = 4
     filenames: IFilenames = {
         "generator": f"GAN_simple_v0_gen_{version}",
         "discriminator": f"GAN_simple_v0_disc_{version}",
@@ -242,7 +246,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=300, 
+              epochs=200, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
