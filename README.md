@@ -22,3 +22,4 @@ This repository will contain some GAN applications.
  - [Tensorboard for Pytorch](https://pytorch.org/tutorials/recipes/recipes/tensorboard_with_pytorch.html#run-tensorboard)
  - [PIL](https://pypi.org/project/pillow/)
  - [Torchmetrics](https://lightning.ai/docs/torchmetrics/stable/)
+ - [torch-summary](https://pypi.org/project/torch-summary/)

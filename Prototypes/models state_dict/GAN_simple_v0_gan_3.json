@@ -13,7 +13,7 @@
         "[TRAINING]",
         "   Generator trained 1 per epoch",
         "   Discriminator trained 1 per epoch",
-        "   Discriminator real certainty: 0.9 (discriminator is taught that 90% real images are fake)",
+        "   Discriminator real certainty: 0.9 (discriminator is taught that 90% real images are real)",
         "   Discriminator fake certainty: 0.1 (discriminator is taught that 10% fake images are real)",
         "[RESULTS]",
         "   Discriminator certainty fake image is fake 30% epoch ~110",

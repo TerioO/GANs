@@ -1,6 +1,6 @@
 {
     "batch_size": 128,
-    "epochs": 604,
+    "epochs": 608,
     "about": [
         "[MODEL]",
         "   Generator: 1x Flatten --> 2x (Linear + BatchNorm1d + LeakyReLU) --> 1x (Linear + Tanh)",
@@ -14,7 +14,7 @@
         "[TRAINING]",
         "   Generator trained 1 per epoch",
         "   Discriminator trained 1 per epoch",
-        "   Discriminator real certainty: 0.9 (discriminator is taught that 90% real images are fake)",
+        "   Discriminator real certainty: 0.9 (discriminator is taught that 90% real images are real)",
         "   Discriminator fake certainty: 0.1 (discriminator is taught that 10% fake images are real)",
         "[RESULTS]",
         "   Generated images at epoch ~600 have more diversity than previous versions but",
@@ -28,7 +28,11 @@
         "Epochs: 50 Training time: 0h - 8min - 28s",
         "Epochs: 50 Training time: 0h - 7min - 56s",
         "Epochs: 200 Training time: 0h - 32min - 45s",
-        "Epochs: 200 Training time: 0h - 33min - 6s"
+        "Epochs: 200 Training time: 0h - 33min - 6s",
+        "Epochs: 1 Training time: 0h - 0min - 10s",
+        "Epochs: 1 Training time: 0h - 0min - 11s",
+        "Epochs: 1 Training time: 0h - 0min - 9s",
+        "Epochs: 1 Training time: 0h - 0min - 8s"
     ],
     "results": [
         "Disc Loss: 0.5962 Gen Loss: 0.9669 Disc Acc Real: 50.64% Disc Acc Fake: 38.83%",
@@ -634,6 +638,10 @@
         "Disc Loss: 0.3069 Gen Loss: 2.9638 Disc Acc Real: 78.48% Disc Acc Fake: 11.43%",
         "Disc Loss: 0.3064 Gen Loss: 2.9911 Disc Acc Real: 78.68% Disc Acc Fake: 11.41%",
         "Disc Loss: 0.3094 Gen Loss: 2.9650 Disc Acc Real: 78.31% Disc Acc Fake: 11.63%",
-        "Disc Loss: 0.3052 Gen Loss: 2.9576 Disc Acc Real: 78.67% Disc Acc Fake: 11.43%"
+        "Disc Loss: 0.3052 Gen Loss: 2.9576 Disc Acc Real: 78.67% Disc Acc Fake: 11.43%",
+        "Disc Loss: 0.3042 Gen Loss: 2.9918 Disc Acc Real: 78.75% Disc Acc Fake: 11.29%",
+        "Disc Loss: 0.3023 Gen Loss: 3.0072 Disc Acc Real: 78.94% Disc Acc Fake: 11.07%",
+        "Disc Loss: 0.2968 Gen Loss: 3.0290 Disc Acc Real: 79.21% Disc Acc Fake: 10.80%",
+        "Disc Loss: 0.2998 Gen Loss: 3.0317 Disc Acc Real: 78.98% Disc Acc Fake: 10.98%"
     ]
 }

@@ -17,6 +17,7 @@ from tqdm import tqdm
 import os
 import shutil
 import helpers
+from torchsummary import summary
 from typing import TypedDict, Dict
 
 class IFilenames(TypedDict):
@@ -246,7 +247,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=200, 
+              epochs=100, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
@@ -281,6 +282,8 @@ def main():
                 plt.axis(False)
             plt.show()
     view_result_images(gen_0, disc_0, 5, 5)
+
+    # summary(gen_0, (1, 28, 28))
 
     def playground():
         print()

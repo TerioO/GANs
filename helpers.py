@@ -30,7 +30,7 @@ def load_MNIST(transform, batch_size: int):
     """
     Downloads/loads MNIST dataset from **torchvision** in **Datasets** root dir
 
-    :param transform: A torchvision that transforms the data
+    :param transform: A torchvision.transforms to transform the data
     :param batch_size: int
     :return: ``train``, ``test``, ``train_dataloader``, ``test_dataloader``
     """
@@ -112,7 +112,7 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
     :param filename: The name of the JSON file, E.g: **data** (.json extension appended automatically)
     :param json_obj: The JSON-like object you want to write in the file
     :param skip_if_exists: Will only write if the .json file doesn't exist, otherwise function immediately retuns.
-    Use with this param set to True when first creating the file
+    Use with this param set to True when first creating the file so that successive runs of the program don't overwite the .json file
     """
 
     cwd = os.path.dirname(os.path.abspath(inspect.stack()[1].filename))
@@ -128,9 +128,9 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
     
 def format_seconds(seconds: int):
     """
-    Wrap your training function with this to print total training time
+    Formats seconds into HH-MM-SS
     
-    :param seconds: 
+    :param seconds: int
     :return: The text: "{hours}h - {minutes}m - {seconds}s"
     """
     hours =  math.floor(seconds/3600)
