@@ -19,6 +19,8 @@ from pathlib import Path
 from collections.abc import Callable
 from typing import TypedDict, Dict
 import math
+import platform
+import subprocess
 from env import env
 
 class ModelCheckpoint(TypedDict):
@@ -85,7 +87,7 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, 
         optim.load_state_dict(loaded_checkpoint["optimizer_state_dict"])
         model.eval()
         if with_print:
-            print(f"Model state dicst loaded from: {path}")
+            print(f"Model state dict loaded from: {path}")
 
 
 def read_json_log(filename: str):
@@ -152,3 +154,31 @@ def get_tensorboard_dir():
     """
     cwd = Path(inspect.stack()[1].filename).parent
     return os.path.join(cwd, env["TENSORBOARD_DIR"])
+
+def get_gpu_info(returnType: Literal["dict", "string"]):
+    """
+    Get some info about the gpu
+    
+    :param returnType: Choose if you want to get gpu info as string or dict
+    :return: The gpu info in a dict IF **torch.cuda.is_available()**
+    
+    >>> gpu = helpers.get_gpu_info("dict")
+    >>> gpu["name"] 
+    >>> gpu["memory"]
+    >>> gpu["compute_probability"]
+    >>> # OR
+    >>> gpu = helpers.get_gpu_info("string")
+    >>> gpu = "GPU: ... | NAME: ... | COMPUTE: ..."
+    """
+    
+    if not torch.cuda.is_available(): return
+    gpu = {}
+    gpu_props = torch.cuda.get_device_properties()
+    gpu["name"] = gpu_props.name
+    gpu["memory"] = gpu_props.total_memory
+    gpu["compute_capability"] = torch.cuda.get_device_capability()
+
+    if returnType == "dist": return gpu
+    elif returnType == "string":
+        return f"GPU: {gpu["name"]} | MEMORY: {gpu['memory']} | COMPUTE: {gpu['compute_capability']}"
+    
