@@ -1,0 +1,31 @@
+{
+    "device": "GPU: NVIDIA GeForce RTX 4060 | MEMORY: 8585216000 | COMPUTE: (8, 9)",
+    "batch_size": 128,
+    "epochs": 20,
+    "train_durations": [
+        "[cuda] Epochs: 10 Training time: 0h - 1min - 56s",
+        "[cuda] Epochs: 10 Training time: 0h - 2min - 3s"
+    ],
+    "results": [
+        "D LOSS: 0.0871 G LOSS: 3.9419 D Acc REAL: 93.30% D Acc FAKE: 6.03%",
+        "D LOSS: 0.0939 G LOSS: 3.2733 D Acc REAL: 91.59% D Acc FAKE: 6.13%",
+        "D LOSS: 0.2126 G LOSS: 2.2586 D Acc REAL: 82.14% D Acc FAKE: 13.74%",
+        "D LOSS: 0.2836 G LOSS: 1.9887 D Acc REAL: 77.01% D Acc FAKE: 17.46%",
+        "D LOSS: 0.3343 G LOSS: 1.7469 D Acc REAL: 73.76% D Acc FAKE: 21.73%",
+        "D LOSS: 0.3209 G LOSS: 1.6892 D Acc REAL: 74.52% D Acc FAKE: 22.38%",
+        "D LOSS: 0.3209 G LOSS: 1.6397 D Acc REAL: 74.43% D Acc FAKE: 23.30%",
+        "D LOSS: 0.2944 G LOSS: 1.6432 D Acc REAL: 76.07% D Acc FAKE: 22.68%",
+        "D LOSS: 0.2773 G LOSS: 1.7128 D Acc REAL: 77.37% D Acc FAKE: 21.64%",
+        "D LOSS: 0.2672 G LOSS: 1.7492 D Acc REAL: 78.14% D Acc FAKE: 20.93%",
+        "[D LOSS]: 0.2699 [G LOSS]: 1.7629 [D Acc REAL]: 78.17% [D Acc FAKE]: 21.11%",
+        "[D LOSS]: 0.2703 [G LOSS]: 1.7814 [D Acc REAL]: 78.24% [D Acc FAKE]: 20.84%",
+        "[D LOSS]: 0.2747 [G LOSS]: 1.7800 [D Acc REAL]: 78.12% [D Acc FAKE]: 21.17%",
+        "[D LOSS]: 0.2676 [G LOSS]: 1.8118 [D Acc REAL]: 78.66% [D Acc FAKE]: 20.62%",
+        "[D LOSS]: 0.2612 [G LOSS]: 1.8369 [D Acc REAL]: 78.99% [D Acc FAKE]: 20.13%",
+        "[D LOSS]: 0.2634 [G LOSS]: 1.8601 [D Acc REAL]: 79.07% [D Acc FAKE]: 20.12%",
+        "[D LOSS]: 0.2610 [G LOSS]: 1.8751 [D Acc REAL]: 79.23% [D Acc FAKE]: 19.90%",
+        "[D LOSS]: 0.2594 [G LOSS]: 1.8983 [D Acc REAL]: 79.39% [D Acc FAKE]: 19.81%",
+        "[D LOSS]: 0.2642 [G LOSS]: 1.9354 [D Acc REAL]: 79.35% [D Acc FAKE]: 19.78%",
+        "[D LOSS]: 0.2543 [G LOSS]: 1.9235 [D Acc REAL]: 79.75% [D Acc FAKE]: 19.44%"
+    ]
+}
