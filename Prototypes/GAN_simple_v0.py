@@ -247,7 +247,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=100, 
+              epochs=5, 
               device=device,
               dataloader=train_dataloader,
               gen=gen_0,
@@ -255,7 +255,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=False)
+              skip=True)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
