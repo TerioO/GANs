@@ -5,9 +5,6 @@ datasets
 # Ignore tensorboard folders
 **/tensorboard
 
-# Ignore playground file
-playground.py
-
 # Ignore VScode specific
 .vscode
 
