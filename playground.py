@@ -183,10 +183,11 @@ def main():
     tanh = nn.Tanh()
 
     img, label = next(iter(train))
+    print(test.classes)
 
     # conv2d_example_0()
     # convTranspose2d_example_0()
-    DCGAN_example_MNIST()
+    # DCGAN_example_MNIST()
 
     
 

@@ -32,11 +32,10 @@ class Discriminator(nn.Module):
     **[MNIST DISCRIMINATOR]**
 
     Example:
-    >>> # input.shape = [batch_size, 1, 28, 28]
-    >>> disc = Discriminator(input_channels=1,
+    >>> y = gen(x)  # y.shape = [batch_size, 1, 28, 28]
+    >>> disc = Discriminator(input_channels=1,  # Match MNIST channels
     >>>                      features=256)      # Should match generator features
-    >>> y = disc(input)
-    >>> # y.shape = [batch_size, features]
+    >>> y = disc(y) # y.shape = [batch_size, features]
     """
 
     def __init__(self, input_channels: int, features: int):
@@ -98,9 +97,9 @@ class Generator(nn.Module):
     Example:
     >>> gen = Generator(input_channels=1,    # Noise channels (100 in the DCGAN paper)
     >>>                 features=256,        # Hyperparameter, should be a power of 2
-    >>>                 output_channels=1)
+    >>>                 output_channels=1)   # Match MNIST channels
     >>>
-    >>> noise = torch.randn(batch_size, features, 1, 1)
+    >>> noise = torch.randn(batch_size, gen.input_channels, 1, 1)
     >>> y = gen(noise) # y.shape = [batch_size, 1, 28, 28]
     """
 
@@ -191,6 +190,7 @@ def train_GAN(filenames: IFilenames,
         for epoch in tqdm(range(epochs)):
             disc_epoch_acc_fake = 0
             disc_epoch_acc_real = 0
+            disc_epoch_acc_test = 0
             disc_epoch_loss = 0
             gen_epoch_loss = 0
             for _, (img, _) in enumerate(dataloader_train):
@@ -224,11 +224,20 @@ def train_GAN(filenames: IFilenames,
                 disc_epoch_acc_real += y_pred_real.mean().item()
 
             # [EPOCH FINISH]
+            # Calculate accuracy on test dataset:
+            with torch.inference_mode():
+                for _, (img, _) in enumerate(dataloader_test):
+                    img = torch.as_tensor(img, device=device)
+                    pred = disc(img)
+                    pred = pred.mean().item()
+                    disc_epoch_acc_test += pred
+            
             # Calculate total loss per epoch:
             disc_epoch_loss /= len(dataloader_train)
             gen_epoch_loss /= len(dataloader_train)
             disc_epoch_acc_fake /= len(dataloader_train)
             disc_epoch_acc_real /= len(dataloader_train)
+            disc_epoch_acc_test /= len(dataloader_test)
 
             # Prepare some fake images for Tensorboard
             with torch.inference_mode():
@@ -252,11 +261,12 @@ def train_GAN(filenames: IFilenames,
             writer.add_image("Real images", imgs_real_grid, global_step)
             writer.add_scalar("D Acc REAL/epoch", disc_epoch_acc_real, global_step)
             writer.add_scalar("D Acc FAKE/epoch", disc_epoch_acc_fake, global_step)
+            writer.add_scalar("D Acc REAL/epoch - TEST dataset", disc_epoch_acc_test, global_step)
             writer.add_scalar("D LOSS/epoch", disc_epoch_loss, global_step)
             writer.add_scalar("G LOSS/epoch", gen_epoch_loss)
 
             # Write to JSON:
-            text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}%"
+            text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}% [D Acc REAL - TEST]: {disc_epoch_acc_test*100:.2f}%"
             results.append(text)
             print(f"Epoch [{epoch+1}/{epochs}] {text}\n")
 
@@ -298,8 +308,6 @@ def train_GAN(filenames: IFilenames,
         print("Keyboard Interrupt")
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 def main():
     # tensorboard --samples_per_plugin "images=200,scalars=1000" --logdir="./Prototypes/tensorboard/DCGAN_MNIST_v0_gan_0"
     os.system("cls")
@@ -311,8 +319,8 @@ def main():
         "gan": f"DCGAN_MNIST_v0_gan_{version}"
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    gen_lr = 2e-4
-    disc_lr = 1e-4
+    gen_lr = 0.0002
+    disc_lr = 0.00005
     batch_size = 32 * 4
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -343,7 +351,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=10,
+              epochs=2,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,
@@ -352,7 +360,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=True)
+              skip=False)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
@@ -379,6 +387,7 @@ def main():
                 plt.title(f"{certainty*100:.2f}%")
                 plt.axis(False)
             plt.show()
+            
     view_result_images(gen_0, disc_0, 5, 5)
 
 
