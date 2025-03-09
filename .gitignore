@@ -5,6 +5,9 @@ datasets
 # Ignore tensorboard folders
 **/tensorboard
 
+# Ignore backup dirs
+Backup state_dicts
+
 # Ignore VScode specific
 .vscode
 

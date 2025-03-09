@@ -3,11 +3,13 @@
 This repository will contain some GAN applications.
 
 ## Project structure
-- `Datasets` dir at root will contain all the datasets used for every model.
-- `tensorboard` dir at any depth will data for **Tensorboard**
-- `models state_dict` dir will contain the models state_dict as well as a json file with some training data
-  (epochs trained, results per epoch, etc.)
-- `helpers.py` will contain reusable functions for the scripts
+- 📁 `Datasets` at root will contain all the datasets used for every model (not saved on git)
+- 📁 `tensorboard` at any depth will data for **Tensorboard** (not saved on git)
+- 📁 `models state_dict` dir will contain the models state_dict as well as a json file detailing training, model
+architecture, hyperparameters and some results (loss, accuracy, etc.)
+- `helpers.py` will contain reusable functions for the scripts (they all come with documentation, read and use them as needed)
+- `playground.py` a place where you can test Pytorch layers usage, anything really
+- 📁 `Prototypes` will contain prototypes used for testing and tunning the models before releasing the final version
 
 ## Datasets that need to be downloaded manually
 - Cats & Dogs
