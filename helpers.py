@@ -22,32 +22,160 @@ import math
 import platform
 import subprocess
 from env import env
+import timeit
+import random
 
 class ModelCheckpoint(TypedDict):
     model_state_dict: any
     optimizer_state_dict: any
 
 
-def load_MNIST(transform, batch_size: int):
+def load_torch_dataset(dataset: Literal["MNIST"], transform, batch_size: int):
     """
-    Downloads/loads MNIST dataset from **torchvision** in **Datasets** root dir
+    Downloads/loads a given dataset from **torchvision** in **Datasets** root dir
 
-    :param transform: A torchvision.transforms to transform the data
+    :param dataset: The name of the dataset available in **torchvision.datasets**
+    :param transform: A **torchvision.transforms** to transform the data
     :param batch_size: int
     :return: ``train``, ``test``, ``train_dataloader``, ``test_dataloader``
     """
 
-    train = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
-                                       train=True,
-                                       download=True,
-                                       transform=transform)
-    test = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
-                                      train=False,
-                                      download=True,
-                                      transform=transform)
+    train, test = 0, 0
+    if dataset == "MNIST":
+        train = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
+                                           train=True,
+                                           download=True,
+                                           transform=transform)
+        test = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
+                                          train=False,
+                                          download=True,
+                                          transform=transform)
+
     train_dataloader = DataLoader(train, batch_size, True)
     test_dataloader = DataLoader(test, batch_size, True)
     return train, test, train_dataloader, test_dataloader
+
+
+def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"], 
+                            transform, 
+                            batch_size: int, 
+                            light: bool = False, 
+                            purge: bool = False,
+                            labels_count: int = 0, 
+                            percent_train: float = 0.1, 
+                            percent_test: float = 0.1):
+    """
+    Load a custom image dataset using **torchvision.datasets.ImageFolder**
+    
+    The *light* dataset has the same shape as the original dataset, but root dir is names as: **"{original_dataset_name} light"**
+    
+    If you run this function with **light=True** it will create a *light* version of the original dataset.
+    The *light* version is created ONCE if the directories for it don't exist, otherwise it will return the 
+    **torchvision.datasets.ImageFolder** and **DataLoader**
+    
+    If you want to recreate the *light* dataset, use **purge=True** which deletes the current *light* dataset
+    and recreates it with your new options
+    
+    :param dataset: Must match the name of the dir where the dataset exists
+    :param transform: A **torchvision.transforms** to transform the data
+    :param batch_size: int
+    :param light: If you want to use a light version of the original dataset, otherwise will return original dataset
+    :param purge: If you want to delete the light dataset and recreate the light dataset
+    :param labels_count: How many labels from the original dataset you want to copy (*labels_count <= 0* --> copies all the labels)
+    :param percent_train: *Value in [0,1] interval*; How many train samples as percentage to copy from original dataset
+    :param percent_test: *Value in [0,1] interval*; How many test samples as percentage to copy from original dataset
+    :return: `train`, `test`, `train_dataloader`, `test_dataloader`
+    """
+    
+    paths = {
+        "dataset_light_dir": os.path.join(env["DATASET_LIGHT_DIR"], dataset),
+        "train_dir_light": os.path.join(env["DATASET_LIGHT_DIR"], dataset, "train"),
+        "test_dir_light": os.path.join(env["DATASET_LIGHT_DIR"], dataset, "test"),
+        "train_dir": os.path.join(env["DATASET_DIR"], dataset, "train"),
+        "test_dir": os.path.join(env["DATASET_DIR"], dataset, "test")
+    }
+    if not os.path.exists(env["DATASET_DIR"]):
+        print(f"Check that '{env["DATASET_DIR"]}' dir exists!")
+        print("Exiting")
+        return
+    if not os.path.exists(paths["train_dir"]): 
+        print(f"Check that '{paths["train_dir"]}' dir exists")
+        print("Exiting")
+        return
+    if not os.path.exists(paths["test_dir"]):
+        print(f"Check that '{paths["test_dir"]}' dir exists")
+        print("Exiting")
+        return
+    
+    def getDataloaders(train_dir: str, test_dir: str):
+        train = torchvision.datasets.ImageFolder(
+            root=train_dir, transform=transform)
+        test = torchvision.datasets.ImageFolder(
+            root=test_dir, transform=transform)
+
+        train_dataloader = DataLoader(train, batch_size, True)
+        test_dataloader = DataLoader(test, batch_size, True)
+        
+        return train, test, train_dataloader, test_dataloader
+    
+    if purge and os.path.exists(paths['dataset_light_dir']): 
+        print(f"\nDeleting '{paths['dataset_light_dir']}'\n")
+        shutil.rmtree(paths["dataset_light_dir"])
+        
+    if light:
+        if not os.path.exists(env["DATASET_LIGHT_DIR"]):
+            print(f"Check that '{env["DATASET_LIGHT_DIR"]}' dir exists!")
+            print("Exiting")
+            return
+        
+        should_create = True if not os.path.exists(paths["dataset_light_dir"]) else False
+        should_create_train = True if not os.path.exists(paths["train_dir_light"]) else False
+        should_create_test = True if not os.path.exists(paths["test_dir_light"]) else False
+        
+        if should_create: os.mkdir(paths["dataset_light_dir"])
+        
+        # Determine how many random labels to copy:
+        train_labels = os.listdir(paths["train_dir"])
+        test_labels = os.listdir(paths["test_dir"])
+        k_labels = labels_count
+        if labels_count > len(train_labels) or labels_count <= 0: k_labels = len(train_labels) 
+        
+        # Get some random labels:
+        seed = timeit.default_timer()
+        random.seed(seed)
+        train_labels = random.sample(train_labels, k=k_labels)
+        random.seed(seed)
+        test_labels = random.sample(test_labels, k=k_labels)
+        
+        if should_create_train:
+            if not os.path.exists(paths["dataset_light_dir"]): os.mkdir(paths["dataset_light_dir"])
+            os.mkdir(paths["train_dir_light"])
+            for label in tqdm(train_labels):
+                os.mkdir(os.path.join(paths["train_dir_light"], label))
+                images = os.listdir(os.path.join(paths["train_dir"], label))
+                for img in random.sample(images, k=int(len(images)*percent_train)):
+                    shutil.copy(src=f"{paths['train_dir']}/{label}/{img}", dst=f"{paths['train_dir_light']}/{label}/{img}")
+        
+        if should_create_test:
+            if not os.path.exists(paths["dataset_light_dir"]): os.mkdir(paths["dataset_light_dir"])
+            os.mkdir(paths["test_dir_light"])
+            for label in tqdm(test_labels):
+                os.mkdir(os.path.join(paths["test_dir_light"], label))
+                images = os.listdir(os.path.join(paths["test_dir"], label))
+                for img in random.sample(images, k=int(len(images)*percent_test)):
+                    shutil.copy(src=f"{paths['test_dir']}/{label}/{img}", dst=f"{paths['test_dir_light']}/{label}/{img}")        
+        
+        return getDataloaders(paths["train_dir_light"], paths["test_dir_light"])
+        
+    else:
+        if not os.path.exists(paths["train_dir"]): 
+            print(f"Failed to create train dataloader. [Dir: '{paths["train_dir"]}' doesn't exist!]")
+            return
+        if not os.path.exists(paths["test_dir"]): 
+            print(f"Faield to create test dataloader. [Dir: '{paths["test_dir"]}' doesn't exist!]")
+            return
+
+        return getDataloaders(paths["train_dir"], paths["test_dir"])
 
 
 def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, model: nn.Module, optim: torch.optim.Optimizer, device: str = None, checkpoint: ModelCheckpoint = None,  with_print: bool = False):
@@ -55,7 +183,7 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, 
     https://pytorch.org/tutorials/beginner/saving_loading_models.html#saving-loading-a-general-checkpoint-for-inference-and-or-resuming-training
 
     Utility function for loading or saving the ``state_dict`` of a model.
-    
+
     :param mode: Wether to save/load the state dict
     :param filename: Name of the file which contains the state_dict
     :param model: The model you want to save/load
@@ -82,7 +210,8 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, 
                     f"Model state dict couldn't be loaded, state dict doesn't exist at: {path}")
             return
         loaded_checkpoint: ModelCheckpoint = torch.load(path, weights_only=True)
-        model.to(device)  # Prevents device mismatch for the optimizer when loading
+        # Prevents device mismatch for the optimizer when loading
+        model.to(device)
         model.load_state_dict(loaded_checkpoint["model_state_dict"])
         optim.load_state_dict(loaded_checkpoint["optimizer_state_dict"])
         model.eval()
@@ -127,41 +256,44 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
         return
     # noinspection PyTypeChecker
     json.dump(json_obj, open(path, "w"), indent=4)
-    
+
+
 def format_seconds(seconds: int):
     """
     Formats seconds into HH-MM-SS
-    
+
     :param seconds: int
     :return: The text: "{hours}h - {minutes}m - {seconds}s"
     """
-    hours =  math.floor(seconds/3600)
-    minutes = math.floor(seconds%3600/60)
-    seconds = math.floor(seconds%3600%60)
+    hours = math.floor(seconds/3600)
+    minutes = math.floor(seconds % 3600/60)
+    seconds = math.floor(seconds % 3600 % 60)
     text = f"{hours}h - {minutes}min - {seconds}s"
     return text
+
 
 def get_tensorboard_dir():
     """
     Returns the path to the **tensorboard** dir which is created relative
     to file execution
-    
+
     In ./example/test.py will return ./example/tensorboard
-    
+
     In ./test.py will return ./tensorboard
-    
+
     The name of the tensorboard dir can be changed in **env.py**
     """
     cwd = Path(inspect.stack()[1].filename).parent
     return os.path.join(cwd, env["TENSORBOARD_DIR"])
 
+
 def get_gpu_info(returnType: Literal["dict", "string"]):
     """
     Get some info about the gpu
-    
+
     :param returnType: Choose if you want to get gpu info as string or dict
     :return: The gpu info in a dict IF **torch.cuda.is_available()**
-    
+
     >>> gpu = helpers.get_gpu_info("dict")
     >>> gpu["name"] 
     >>> gpu["memory"]
@@ -170,7 +302,7 @@ def get_gpu_info(returnType: Literal["dict", "string"]):
     >>> gpu = helpers.get_gpu_info("string")
     >>> gpu = "GPU: ... | NAME: ... | COMPUTE: ..."
     """
-    
+
     if not torch.cuda.is_available(): return
     gpu = {}
     gpu_props = torch.cuda.get_device_properties()
@@ -178,7 +310,7 @@ def get_gpu_info(returnType: Literal["dict", "string"]):
     gpu["memory"] = gpu_props.total_memory
     gpu["compute_capability"] = torch.cuda.get_device_capability()
 
-    if returnType == "dist": return gpu
+    if returnType == "dist":
+        return gpu
     elif returnType == "string":
         return f"GPU: {gpu["name"]} | MEMORY: {gpu['memory']} | COMPUTE: {gpu['compute_capability']}"
-    
