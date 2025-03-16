@@ -1,6 +1,6 @@
 # Ignore *dataset* folders
 ./**/dataset
-datasets
+/Datasets*/
 
 # Ignore tensorboard folders
 **/tensorboard
