@@ -67,6 +67,15 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
     """
     Load a custom image dataset using **torchvision.datasets.ImageFolder**
     
+    Custom image dataset shape, where *label_name* are the classes/labels of the samples:
+    - "./dataset_name"
+    - "./dataset_name/train"
+    - "./dataset_name/train/label_name
+    - "./dataset_name/train/label_name/img_1.png
+    - "./dataset_name/test"
+    - "./dataset_name/test/label_name
+    - "./dataset_name/test/label_name/img_1.png
+    
     The *light* dataset has the same shape as the original dataset, but root dir is names as: **"{original_dataset_name} light"**
     
     If you run this function with **light=True** it will create a *light* version of the original dataset.
