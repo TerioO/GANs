@@ -1,6 +1,6 @@
 {
     "batch_size": 128,
-    "epochs": 618,
+    "epochs": 620,
     "about": [
         "[MODEL]",
         "   Generator: 1x Flatten --> 2x (Linear + BatchNorm1d + LeakyReLU) --> 1x (Linear + Tanh)",
@@ -34,7 +34,8 @@
         "Epochs: 1 Training time: 0h - 0min - 9s",
         "Epochs: 1 Training time: 0h - 0min - 8s",
         "Epochs: 5 Training time: 0h - 0min - 58s",
-        "Epochs: 5 Training time: 0h - 0min - 51s"
+        "Epochs: 5 Training time: 0h - 0min - 51s",
+        "Epochs: 2 Training time: 0h - 0min - 21s"
     ],
     "results": [
         "Disc Loss: 0.5962 Gen Loss: 0.9669 Disc Acc Real: 50.64% Disc Acc Fake: 38.83%",
@@ -654,6 +655,8 @@
         "Disc Loss: 0.2997 Gen Loss: 3.0240 Disc Acc Real: 79.03% Disc Acc Fake: 10.90%",
         "Disc Loss: 0.3049 Gen Loss: 3.0026 Disc Acc Real: 78.69% Disc Acc Fake: 11.31%",
         "Disc Loss: 0.2969 Gen Loss: 3.0365 Disc Acc Real: 79.23% Disc Acc Fake: 10.79%",
-        "Disc Loss: 0.3020 Gen Loss: 3.0166 Disc Acc Real: 78.91% Disc Acc Fake: 11.01%"
+        "Disc Loss: 0.3020 Gen Loss: 3.0166 Disc Acc Real: 78.91% Disc Acc Fake: 11.01%",
+        "Disc Loss: 0.3040 Gen Loss: 3.0087 Disc Acc Real: 79.00% Disc Acc Fake: 11.17%",
+        "Disc Loss: 0.3011 Gen Loss: 3.0223 Disc Acc Real: 79.06% Disc Acc Fake: 10.90%"
     ]
 }

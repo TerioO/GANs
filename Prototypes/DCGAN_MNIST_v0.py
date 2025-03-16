@@ -327,7 +327,8 @@ def main():
         transforms.Normalize(0.5, 0.5)
     ])
 
-    train, test, train_dataloader, test_dataloader = helpers.load_MNIST(
+    train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset(
+        "MNIST",
         transform, batch_size)
 
     gen_0 = Generator(input_channels=100, features=256, output_channels=1)
@@ -360,7 +361,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=False)
+              skip=True)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,

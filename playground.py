@@ -112,7 +112,7 @@ def convTranspose2d(x: torch.tensor,
     return y
 
 def conv2d_example_0():
-    train, _, _, _ = helpers.load_MNIST(transforms.ToTensor(), 32)
+    train, _, _, _ = helpers.load_torch_dataset("MNIST", transforms.ToTensor(), 32)
     img, _ = next(iter(train))
 
     # img.shape = [1,28,28]
@@ -137,7 +137,7 @@ def conv2d_example_0():
     plt.show()
 
 def convTranspose2d_example_0():
-    train, _, _, _ = helpers.load_MNIST(transforms.ToTensor(), 32)
+    train, _, _, _ = helpers.load_torch_dataset("MNIST", transforms.ToTensor(), 32)
     img, _ = next(iter(train))
     
     y_conv = conv2d(torch.as_tensor(img).unsqueeze(dim=0), 1, 8, 1, 1)
@@ -156,7 +156,7 @@ def DCGAN_example_MNIST():
     sigmoid = nn.Sigmoid()
     flatten = nn.Flatten()
     
-    train, _, _, _ = helpers.load_MNIST(transforms.ToTensor(), 32)
+    train, _, _, _ = helpers.load_torch_dataset("MNIST", transforms.ToTensor(), 32)
     img, _ = next(iter(train))
     x = torch.as_tensor(img).unsqueeze(dim=0)
     
@@ -175,20 +175,29 @@ def DCGAN_example_MNIST():
 
 def main():
     os.system("cls")
-    train, test, train_dataloader, test_dataloader = helpers.load_MNIST(
+    train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset("MNIST",
         transforms.ToTensor(), 32)
 
     flatten = nn.Flatten()
     sigmoid = nn.Sigmoid()
     tanh = nn.Tanh()
 
-    img, label = next(iter(train))
-    print(test.classes)
-
     # conv2d_example_0()
     # convTranspose2d_example_0()
     # DCGAN_example_MNIST()
+    ta, te, ta_dataloader, te_dataloader = helpers.load_custom_img_dataset(
+        "food-101", 
+        transforms.ToTensor(), 
+        32,
+        light=True,
+        purge=True,
+        labels_count=2,
+        percent_test=0.05,
+        percent_train=0.05
+    )
 
-    
-
+    print(ta.classes, len(ta))
+    print(te.classes, len(te))
+    print(ta_dataloader.batch_size, len(ta_dataloader))
+    print(te_dataloader.batch_size, len(te_dataloader))
 main()

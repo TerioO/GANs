@@ -1,7 +1,7 @@
 {
     "device": "GPU: NVIDIA GeForce RTX 4060 | MEMORY: 8585216000 | COMPUTE: (8, 9)",
     "batch_size": 128,
-    "epochs": 454,
+    "epochs": 458,
     "about": [
         "[DATASET]",
         "   MNIST: images of handwritten digits of shape [1,28,28]",
@@ -31,6 +31,8 @@
         "[cuda] Epochs: 150 Training time: 0h - 30min - 3s",
         "[cuda] Epochs: 100 Training time: 0h - 22min - 30s",
         "[cuda] Epochs: 2 Training time: 0h - 0min - 27s",
+        "[cuda] Epochs: 2 Training time: 0h - 0min - 28s",
+        "[cuda] Epochs: 2 Training time: 0h - 0min - 25s",
         "[cuda] Epochs: 2 Training time: 0h - 0min - 28s"
     ],
     "results": [
@@ -487,6 +489,10 @@
         "[D LOSS]: 0.2096 [G LOSS]: 2.7054 [D Acc REAL]: 84.28% [D Acc FAKE]: 14.90% [D Acc REAL - TEST]: 63.69%",
         "[D LOSS]: 0.2059 [G LOSS]: 2.7250 [D Acc REAL]: 84.45% [D Acc FAKE]: 14.71% [D Acc REAL - TEST]: 72.04%",
         "[D LOSS]: 0.2082 [G LOSS]: 2.7075 [D Acc REAL]: 84.31% [D Acc FAKE]: 14.99% [D Acc REAL - TEST]: 69.88%",
-        "[D LOSS]: 0.2164 [G LOSS]: 2.7223 [D Acc REAL]: 83.94% [D Acc FAKE]: 15.10% [D Acc REAL - TEST]: 78.79%"
+        "[D LOSS]: 0.2164 [G LOSS]: 2.7223 [D Acc REAL]: 83.94% [D Acc FAKE]: 15.10% [D Acc REAL - TEST]: 78.79%",
+        "[D LOSS]: 0.2038 [G LOSS]: 2.6909 [D Acc REAL]: 84.44% [D Acc FAKE]: 14.83% [D Acc REAL - TEST]: 75.42%",
+        "[D LOSS]: 0.2049 [G LOSS]: 2.7365 [D Acc REAL]: 84.53% [D Acc FAKE]: 14.80% [D Acc REAL - TEST]: 84.66%",
+        "[D LOSS]: 0.2081 [G LOSS]: 2.7090 [D Acc REAL]: 84.30% [D Acc FAKE]: 14.86% [D Acc REAL - TEST]: 67.03%",
+        "[D LOSS]: 0.2163 [G LOSS]: 2.6938 [D Acc REAL]: 83.89% [D Acc FAKE]: 15.18% [D Acc REAL - TEST]: 63.04%"
     ]
 }
