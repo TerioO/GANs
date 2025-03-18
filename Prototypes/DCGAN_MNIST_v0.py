@@ -263,7 +263,7 @@ def train_GAN(filenames: IFilenames,
             writer.add_scalar("D Acc FAKE/epoch", disc_epoch_acc_fake, global_step)
             writer.add_scalar("D Acc REAL/epoch - TEST dataset", disc_epoch_acc_test, global_step)
             writer.add_scalar("D LOSS/epoch", disc_epoch_loss, global_step)
-            writer.add_scalar("G LOSS/epoch", gen_epoch_loss)
+            writer.add_scalar("G LOSS/epoch", gen_epoch_loss, global_step)
 
             # Write to JSON:
             text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}% [D Acc REAL - TEST]: {disc_epoch_acc_test*100:.2f}%"

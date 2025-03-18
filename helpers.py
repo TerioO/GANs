@@ -91,8 +91,8 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
     :param light: If you want to use a light version of the original dataset, otherwise will return original dataset
     :param purge: If you want to delete the light dataset and recreate the light dataset
     :param labels_count: How many labels from the original dataset you want to copy (*labels_count <= 0* --> copies all the labels)
-    :param percent_train: *Value in [0,1] interval*; How many train samples as percentage to copy from original dataset
-    :param percent_test: *Value in [0,1] interval*; How many test samples as percentage to copy from original dataset
+    :param percent_train: *Value in (0,1] interval*; How many train samples as percentage to copy from original dataset
+    :param percent_test: *Value in (0,1] interval*; How many test samples as percentage to copy from original dataset
     :return: `train`, `test`, `train_dataloader`, `test_dataloader`
     """
     

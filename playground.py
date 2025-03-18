@@ -186,18 +186,23 @@ def main():
     # convTranspose2d_example_0()
     # DCGAN_example_MNIST()
     ta, te, ta_dataloader, te_dataloader = helpers.load_custom_img_dataset(
-        "food-101", 
-        transforms.ToTensor(), 
+        "Cat and Dog", 
+        transforms.Compose([
+            transforms.Resize(size=(128, 128)),
+            transforms.ToTensor()
+        ]), 
         32,
         light=True,
-        purge=True,
-        labels_count=2,
-        percent_test=0.05,
-        percent_train=0.05
     )
 
     print(ta.classes, len(ta))
     print(te.classes, len(te))
     print(ta_dataloader.batch_size, len(ta_dataloader))
     print(te_dataloader.batch_size, len(te_dataloader))
+    
+    img, label = next(iter(ta))
+    img = img.permute(2,1,0)
+    print(img.shape)
+    plt.imshow(img)
+    plt.show()
 main()
