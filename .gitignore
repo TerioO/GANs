@@ -5,6 +5,10 @@
 # Ignore tensorboard folders
 **/tensorboard
 
+# Ignore state_dicts
+**/models state_dict/*
+!**/models state_dict/*.json
+
 # Ignore backup dirs
 Backup state_dicts
 
