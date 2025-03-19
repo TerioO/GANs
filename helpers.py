@@ -187,7 +187,7 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
         return getDataloaders(paths["train_dir"], paths["test_dir"])
 
 
-def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, model: nn.Module, optim: torch.optim.Optimizer, device: str = None, checkpoint: ModelCheckpoint = None,  with_print: bool = False):
+def save_or_load_model_checkpoint(mode: Literal["save", "load"], dir: str, filename: str, model: nn.Module, optim: torch.optim.Optimizer, device: str = None, checkpoint: ModelCheckpoint = None,  with_print: bool = False):
     """
     https://pytorch.org/tutorials/beginner/saving_loading_models.html#saving-loading-a-general-checkpoint-for-inference-and-or-resuming-training
 
@@ -203,10 +203,10 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, 
     """
 
     cwd = os.path.dirname(os.path.abspath(inspect.stack()[1].filename))
-    cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"])
+    cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"], dir)
 
     if not os.path.exists(cwd):
-        os.mkdir(cwd)
+        os.makedirs(cwd, exist_ok=True)
     path = os.path.join(cwd, filename)
     if mode == "save":
         torch.save(checkpoint, path)
@@ -228,7 +228,7 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], filename: str, 
             print(f"Model state dict loaded from: {path}")
 
 
-def read_json_log(filename: str):
+def read_json_log(dir: str, filename: str):
     """
     https://docs.python.org/3/library/json.html
 
@@ -237,7 +237,7 @@ def read_json_log(filename: str):
     """
 
     cwd = os.path.dirname(os.path.abspath(inspect.stack()[1].filename))
-    cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"])
+    cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"], dir)
 
     path = os.path.join(cwd, f"{filename}.json")
     if not os.path.exists(path):
@@ -245,7 +245,7 @@ def read_json_log(filename: str):
     return json.load(open(path, "r"))
 
 
-def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
+def write_json_log(dir: str, filename: str, json_obj, skip_if_exists: bool = False):
     """
     https://docs.python.org/3/library/json.html
 
@@ -256,10 +256,10 @@ def write_json_log(filename: str, json_obj, skip_if_exists: bool = False):
     """
 
     cwd = os.path.dirname(os.path.abspath(inspect.stack()[1].filename))
-    cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"])
+    cwd = os.path.join(cwd, env["MODELS_STATE_DICT_DIR"], dir)
 
     if not os.path.exists(cwd):
-        os.mkdir(cwd)
+        os.makedirs(cwd, exist_ok=True)
     path = os.path.join(cwd, f"{filename}.json")
     if skip_if_exists and os.path.exists(path):
         return
@@ -281,19 +281,24 @@ def format_seconds(seconds: int):
     return text
 
 
-def get_tensorboard_dir():
+def get_tensorboard_dir(dir: str):
     """
-    Returns the path to the **tensorboard** dir which is created relative
-    to file execution
-
-    In ./example/test.py will return ./example/tensorboard
-
-    In ./test.py will return ./tensorboard
-
-    The name of the tensorboard dir can be changed in **env.py**
+    Constructs the path for the tensorboard dir
     """
     cwd = Path(inspect.stack()[1].filename).parent
-    return os.path.join(cwd, env["TENSORBOARD_DIR"])
+    path = os.path.join(cwd, 
+                env["MODELS_STATE_DICT_DIR"], 
+                dir,
+                env["TENSORBOARD_DIR"])
+    return path
+
+
+
+def get_parent_dir():
+    """
+    Get the working dir 
+    """
+    return Path(inspect.stack()[1].filename).parent
 
 
 def get_gpu_info(returnType: Literal["dict", "string"]):

@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 import random
 import time
 import typing
@@ -22,9 +23,11 @@ from typing import TypedDict, Dict
 
 
 class IFilenames(TypedDict):
+    dir: str
     generator: str
     discriminator: str
     gan: str
+    tensorboard: str
 
 # [MODEL] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 class Discriminator(nn.Module):
@@ -168,11 +171,11 @@ def train_GAN(filenames: IFilenames,
     if skip: return
     
     # Tensorboard init:
-    writer = SummaryWriter(log_dir=os.path.join(helpers.get_tensorboard_dir(), filenames["gan"]),
-                           filename_suffix=filenames["gan"])
+    writer = SummaryWriter(log_dir=filenames["tensorboard"],
+                           filename_suffix=Path(filenames["tensorboard"]).name)
 
     # JSON init:
-    json_log = helpers.read_json_log(filenames["gan"])
+    json_log = helpers.read_json_log(filenames["dir"], filenames["gan"])
     results = []
     disc_epoch_loss, gen_epoch_loss = 0, 0
     disc_epoch_acc_real, disc_epoch_acc_fake = 0, 0
@@ -282,10 +285,11 @@ def train_GAN(filenames: IFilenames,
         json_log["results"] += results
         json_log["epochs"] = len(json_log["results"])
         json_log["train_durations"].append(f"[{device}] Epochs: {epochs} {train_time_text}")
-        helpers.write_json_log(filenames["gan"], json_log)
+        helpers.write_json_log(filenames["dir"], filenames["gan"], json_log)
 
         # Save state_dict:
         helpers.save_or_load_model_checkpoint("save",
+                                              filenames["dir"],
                                               filenames["generator"],
                                               gen,
                                               gen_optim,
@@ -294,6 +298,7 @@ def train_GAN(filenames: IFilenames,
                                                   "optimizer_state_dict": gen_optim.state_dict()
                                               })
         helpers.save_or_load_model_checkpoint("save",
+                                              filenames["dir"],
                                               filenames["discriminator"],
                                               disc,
                                               disc_optim,
@@ -311,14 +316,16 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=1000,scalars=1000" --logdir="./Prototypes/tensorboard/DCGAN_MNIST_v0_gan_0"
+    # tensorboard --samples_per_plugin "images=200,scalars=1000" --logdir="./Prototypes/models state_dict/DCGAN_MNIST_v0/tensorboard"
     os.system("cls")
 
     version = 0
     filenames: IFilenames = {
-        "generator": f"DCGAN_MNIST_v0_gen_{version}",
-        "discriminator": f"DCGAN_MNIST_v0_disc_{version}",
-        "gan": f"DCGAN_MNIST_v0_gan_{version}"
+        "dir": f"DCGAN_MNIST_v{version}",
+        "generator": f"gen",
+        "discriminator": f"disc",
+        "gan": f"gan",
+        "tensorboard": helpers.get_tensorboard_dir(f"DCGAN_MNIST_v{version}")
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     gen_lr = 2e-4
@@ -339,9 +346,10 @@ def main():
     gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr, betas=(0.5, 0.999))
     disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr, betas=(0.5, 0.999))
 
-    helpers.save_or_load_model_checkpoint("load", filenames["generator"], gen_0, gen_0_optim, device=device)
-    helpers.save_or_load_model_checkpoint("load", filenames["discriminator"], disc_0, disc_0_optim, device=device)
+    helpers.save_or_load_model_checkpoint("load", filenames["dir"], filenames["generator"], gen_0, gen_0_optim, device=device)
+    helpers.save_or_load_model_checkpoint("load", filenames["dir"], filenames["discriminator"], disc_0, disc_0_optim, device=device)
     helpers.write_json_log(
+        filenames["dir"],
         filenames["gan"],
         {
             "device": helpers.get_gpu_info("string"),
@@ -354,7 +362,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=100,
+              epochs=1,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,

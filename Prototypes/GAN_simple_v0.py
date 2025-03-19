@@ -1,4 +1,5 @@
 import math
+from pathlib import Path
 import random
 import time
 import typing
@@ -21,9 +22,11 @@ from torchsummary import summary
 from typing import TypedDict, Dict
 
 class IFilenames(TypedDict):
+    dir: str
     generator: str
     discriminator: str
     gan: str
+    tensorboard: str
 
 class Discriminator(nn.Module):
     def __init__(self, input_shape: int, hidden_units: int, output_shape: int):
@@ -81,11 +84,11 @@ def train_GAN(filenames: IFilenames,
             return
 
         # Tensorboard init:
-        writer = SummaryWriter(log_dir=os.path.join(helpers.get_tensorboard_dir(), filenames["gan"]),
-                               filename_suffix=filenames["gan"])
+        writer = SummaryWriter(log_dir=filenames["tensorboard"],
+                               filename_suffix=Path(filenames["tensorboard"]).name)
 
         # JSON init:
-        json_log = helpers.read_json_log(filenames["gan"])
+        json_log = helpers.read_json_log(filenames["dir"], filenames["gan"])
         results = []
 
         # Train time start:
@@ -177,10 +180,11 @@ def train_GAN(filenames: IFilenames,
         json_log["results"] += results
         json_log["epochs"] = len(json_log["results"])
         json_log["train_durations"].append(f"Epochs: {epochs} {text}")
-        helpers.write_json_log(filenames["gan"], json_log)
+        helpers.write_json_log(filenames["dir"], filenames["gan"], json_log)
 
         # Save state_dict:
         helpers.save_or_load_model_checkpoint("save",
+                                              filenames["dir"],
                                               filenames["generator"],
                                               gen, 
                                               gen_optim, 
@@ -189,6 +193,7 @@ def train_GAN(filenames: IFilenames,
                                                   "optimizer_state_dict": gen_optim.state_dict()
                                               })
         helpers.save_or_load_model_checkpoint("save",
+                                              filenames["dir"],
                                               filenames["discriminator"],
                                               disc, 
                                               disc_optim, 
@@ -207,14 +212,16 @@ def train_GAN(filenames: IFilenames,
 
 def main():
     # https://stackoverflow.com/questions/43763858/change-images-slider-step-in-tensorboard
-    # tensorboard --samples_per_plugin "images=200,scalars=1000" --logdir="./Prototypes/tensorboard/GAN_simple_v0_gan_4"
+    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/GAN_simple_v5/tensorboard"
     os.system("cls")
 
     version = 4
     filenames: IFilenames = {
-        "generator": f"GAN_simple_v0_gen_{version}",
-        "discriminator": f"GAN_simple_v0_disc_{version}",
-        "gan": f"GAN_simple_v0_gan_{version}",
+        "dir": f"GAN_simple_v{version}",
+        "generator": f"gen",
+        "discriminator": f"disc",
+        "gan": f"gan",
+        "tensorboard": helpers.get_tensorboard_dir(f"GAN_simple_v{version}")
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     gen_lr = 2e-4
@@ -233,9 +240,10 @@ def main():
     gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr)
     disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr)
     
-    helpers.save_or_load_model_checkpoint("load", filenames["generator"], gen_0, gen_0_optim, device)
-    helpers.save_or_load_model_checkpoint("load", filenames["discriminator"], disc_0, disc_0_optim, device)
+    helpers.save_or_load_model_checkpoint("load", filenames["dir"], filenames["generator"], gen_0, gen_0_optim, device)
+    helpers.save_or_load_model_checkpoint("load", filenames["dir"], filenames["discriminator"], disc_0, disc_0_optim, device)
     helpers.write_json_log(
+        filenames["dir"],
         filenames["gan"],           
         {
             "batch_size": batch_size,
