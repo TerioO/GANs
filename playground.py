@@ -172,6 +172,25 @@ def DCGAN_example_MNIST():
     y = convTranspose2d(y, int(1024/2), int(1024/4), 4, 2, 1)
     y = convTranspose2d(y, int(1024/4), 1, 4, 2, 1)
 
+def create_light_dataset():
+    ta, te, ta_dataloader, te_dataloader = helpers.load_custom_img_dataset(
+        "Cat and Dog", 
+        transforms.Compose([
+            transforms.Resize(size=(128, 128)),
+            transforms.ToTensor()
+        ]), 
+        32,
+        light=True,
+        purge=True,
+        percent_train=0.5,
+        percent_test=0.5,
+        labels_count=0
+    )
+
+    print("Training: ", ta.classes, len(ta))
+    print("Test: ", te.classes, len(te))
+    print("Train batches: ", ta_dataloader.batch_size, len(ta_dataloader))
+    print("Test batches: ", te_dataloader.batch_size, len(te_dataloader))
 
 def main():
     os.system("cls")
@@ -185,24 +204,12 @@ def main():
     # conv2d_example_0()
     # convTranspose2d_example_0()
     # DCGAN_example_MNIST()
-    ta, te, ta_dataloader, te_dataloader = helpers.load_custom_img_dataset(
-        "Cat and Dog", 
-        transforms.Compose([
-            transforms.Resize(size=(128, 128)),
-            transforms.ToTensor()
-        ]), 
-        32,
-        light=True,
-    )
 
-    print(ta.classes, len(ta))
-    print(te.classes, len(te))
-    print(ta_dataloader.batch_size, len(ta_dataloader))
-    print(te_dataloader.batch_size, len(te_dataloader))
+    create_light_dataset()
     
-    img, label = next(iter(ta))
-    img = img.permute(2,1,0)
-    print(img.shape)
-    plt.imshow(img)
-    plt.show()
+    # img, label = next(iter(ta))
+    # img = img.permute(2,1,0)
+    # print(img.shape)
+    # plt.imshow(img)
+    # plt.show()
 main()
