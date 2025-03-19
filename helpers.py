@@ -194,6 +194,7 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], dir: str, filen
     Utility function for loading or saving the ``state_dict`` of a model.
 
     :param mode: Wether to save/load the state dict
+    :param dir: Name of the dir where to save/load files
     :param filename: Name of the file which contains the state_dict
     :param model: The model you want to save/load
     :param optim: The models optimizer
@@ -232,6 +233,7 @@ def read_json_log(dir: str, filename: str):
     """
     https://docs.python.org/3/library/json.html
 
+    :param dir: Name of the dir where to read json from
     :param filename: The name of the JSON file, E.g: **data** (.json extension appended automatically)
     :return: The JSON object as a Python dictionary
     """
@@ -249,6 +251,7 @@ def write_json_log(dir: str, filename: str, json_obj, skip_if_exists: bool = Fal
     """
     https://docs.python.org/3/library/json.html
 
+    :param dir: Name of the dir where to write json to
     :param filename: The name of the JSON file, E.g: **data** (.json extension appended automatically)
     :param json_obj: The JSON-like object you want to write in the file
     :param skip_if_exists: Will only write if the .json file doesn't exist, otherwise function immediately retuns.
@@ -284,6 +287,13 @@ def format_seconds(seconds: int):
 def get_tensorboard_dir(dir: str):
     """
     Constructs the path for the tensorboard dir
+    
+    :param dir: The directory where **tensorboard** dir is created
+    :return: Path to **tensorboard** dir
+    
+    >>> Example
+    # It will build a path in this format:
+    f"./{env["MODELS_STATE_DICT_DIR"]}/{dir}/{env["TENSORBOARD_DIR"]}"
     """
     cwd = Path(inspect.stack()[1].filename).parent
     path = os.path.join(cwd, 
@@ -293,10 +303,13 @@ def get_tensorboard_dir(dir: str):
     return path
 
 
-
 def get_parent_dir():
     """
     Get the working dir 
+    
+    If called in ./Prototypes/models state_dict => "models state_dict"
+    
+    If called in ./Prototypes => "Prototypes"
     """
     return Path(inspect.stack()[1].filename).parent
 
