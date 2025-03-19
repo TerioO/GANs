@@ -316,7 +316,7 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=200,scalars=1000" --logdir="./Prototypes/models state_dict/DCGAN_MNIST_v0/tensorboard"
+    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/DCGAN_MNIST_v0/tensorboard"
     os.system("cls")
 
     version = 0
