@@ -33,9 +33,9 @@ class Discriminator(nn.Module):
 
     Example:
     >>> y = gen(x)  # y.shape = [batch_size, 1, 28, 28]
-    >>> disc = Discriminator(input_channels=1,  # Match MNIST channels
-    >>>                      features=256)      # Should match generator features
-    >>> y = disc(y) # y.shape = [batch_size, features]
+    >>> disc = Discriminator(input_channels=1,      # Match MNIST channels
+    >>>                      features=256)          # Should match generator features
+    >>> y = disc(y) # y.shape = [batch_size, 1]
     """
 
     def __init__(self, input_channels: int, features: int):
@@ -69,8 +69,10 @@ class Discriminator(nn.Module):
             # [N, features, 1, 1]
             nn.Flatten(),
             # [N, features]
+            nn.Linear(in_features=features, out_features=1),
+            # [N, 1]
             nn.Sigmoid()
-            # [N, features]
+            # [N, 1]
         )
 
     def conv2d_block(self, in_channels: int, out_channels: int, kernel_size: int, stride: int, padding: int):
@@ -309,7 +311,7 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=200,scalars=1000" --logdir="./Prototypes/tensorboard/DCGAN_MNIST_v0_gan_0"
+    # tensorboard --samples_per_plugin "images=1000,scalars=1000" --logdir="./Prototypes/tensorboard/DCGAN_MNIST_v0_gan_0"
     os.system("cls")
 
     version = 0
@@ -319,8 +321,8 @@ def main():
         "gan": f"DCGAN_MNIST_v0_gan_{version}"
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
-    gen_lr = 0.0002
-    disc_lr = 0.00005
+    gen_lr = 2e-4
+    disc_lr = 1e-4
     batch_size = 32 * 4
     transform = transforms.Compose([
         transforms.ToTensor(),
@@ -334,8 +336,8 @@ def main():
     gen_0 = Generator(input_channels=100, features=256, output_channels=1)
     disc_0 = Discriminator(input_channels=1, features=256)
 
-    gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr)
-    disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr)
+    gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr, betas=(0.5, 0.999))
+    disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr, betas=(0.5, 0.999))
 
     helpers.save_or_load_model_checkpoint("load", filenames["generator"], gen_0, gen_0_optim, device=device)
     helpers.save_or_load_model_checkpoint("load", filenames["discriminator"], disc_0, disc_0_optim, device=device)
@@ -352,7 +354,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=2,
+              epochs=100,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,
@@ -361,7 +363,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=True)
+              skip=False)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
@@ -377,10 +379,10 @@ def main():
         disc.eval()
         with torch.inference_mode():
             for i in range(rows*cols):
-                noise = torch.randn(img.shape[0], gen.input_channels, 1, 1).to(device)
+                noise = torch.randn(1, gen.input_channels, 1, 1).to(device)
                 img_fake = gen(noise)         # img_fake.shape = [1, gen.output_channels(1), 28, 28]
-                certainty = disc(img_fake)    # certainty.shape = [1, disc.features(256)]
-                certainty = certainty.mean().item()
+                certainty = disc(img_fake)    # certainty.shape = [1, 1]
+                certainty = certainty.item()
                 
                 img_plt = img_fake.view(28, 28).cpu().numpy()
                 plt.subplot(rows, cols, i+1)
@@ -391,5 +393,19 @@ def main():
             
     view_result_images(gen_0, disc_0, 5, 5)
 
+    def test(gen: nn.Module, disc: nn.Module):
+        gen.to(device)
+        disc.to(device)
+        
+        N = 32
+        noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
+        
+        img_fake = gen(noise)
+        print(img_fake.shape)   # [N, gen.output_channels=1, 28, 28]
+        
+        pred = disc(img_fake)   # [N, 1]
+        print(pred.shape)
+        
+    # test(gen_0, disc_0)
 
 main()
