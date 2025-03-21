@@ -1,9 +1,11 @@
 import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
+import { IMsgResponse } from "../types/global-types";
 
 export const getServerStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        res.status(200).json({ message: "Server ON" });
+        const response: IMsgResponse = { message: "Server ON" }; 
+        res.status(200).json(response);
     } catch (error) {
         next(error);
     }

@@ -3,6 +3,7 @@ import cors from "cors";
 import { corsOptions } from "./config/cors";
 import { errorHandler } from "./middleware/erorrHandler";
 import apiRouter from "./routers/apiR";
+import { IApiError } from "./types/global-types";
 
 export const app = () => {
     const app = express();
@@ -17,9 +18,19 @@ export const app = () => {
 
     // 404 Route:
     app.use((req, res, next) => {
-        if (req.accepts("html")) res.status(404).send(`<h1>404 - NOT FOUND</h1>`);
-        else if (req.accepts("text/plain")) res.status(404).send("404 - NOT FOUND");
-        else if (req.accepts("application/json")) res.status(404).json({ message: "404 - NOT FOUND" });
+        const contentType = req.headers["content-type"];
+
+        if (contentType?.includes("text/html")) {
+            res.status(404).send(`<h1>404 - NOT FOUND</h1>`);
+        } else if (contentType?.includes("text/plain")) {
+            res.status(404).send("404 - NOT FOUND");
+        } else if (contentType?.includes("application/json")) {
+            const response: IApiError = {
+                isError: true,
+                message: "404 - NOT FOUND"
+            };
+            res.status(404).json(response);
+        }
     });
 
     // Error Handler:

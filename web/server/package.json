@@ -4,7 +4,7 @@
   "main": "index.js",
   "scripts": {
     "build": "tsc",
-    "format": "prettier --write \"src/**/*.{js,ts,jsx,tsx,json,css,scss,md}\"",
+    "format": "prettier --write \"src/**/*.{js,ts}\"",
     "dev": "cross-env NODE_ENV=dev nodemon ./src/server.ts",
     "dev:prod": "cross-env NODE_ENV=prod nodemon ./src/server.ts",
     "prod": "cross-env NODE_ENV=prod node ./dist/server.js"
