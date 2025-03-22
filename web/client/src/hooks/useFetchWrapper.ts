@@ -6,17 +6,17 @@ interface Data<T> extends AxiosResponse<T> {
     ok: boolean;
 }
 
-export function useFetchWrapper<T>(request: () => Promise<AxiosResponse<T>>) {
+export function useFetchWrapper<T, Payload = void>(request: (payload: Payload) => Promise<AxiosResponse<T>>) {
     const loading = ref<boolean>(false);
     const isErr = ref<boolean>(false);
     const errMsg = ref<string | null>(null);
     const data = ref<T | null>(null);
     const axiosRes = ref<Data<T> | null>(null);
 
-    const trigger = async function () {
+    const trigger = async function (p: Payload) {
         try {
             loading.value = true;
-            const res = await request();
+            const res = await request(p);
             axiosRes.value = {
                 ...res,
                 ok: res.status > 200 && res.status <= 299 ? true : false

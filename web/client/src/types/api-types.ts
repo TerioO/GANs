@@ -6,3 +6,13 @@ export interface IApiError {
 export interface IMsgResponse {
     message: string;
 }
+
+export interface IOnnxRequest {
+    payload: {
+        batchSize: string;
+    };
+    data: {
+        tensor: any[];
+        dims: readonly number[];
+    }
+}

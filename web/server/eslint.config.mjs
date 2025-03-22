@@ -12,7 +12,9 @@ export default [
         rules: {
             "no-unused-vars": "off",
             "@typescript-eslint/no-unused-vars": "off",
-            semi: ["warn", "always"],
-        },
-    },
+            "no-explicit-any": "off",
+            "@typescript-eslint/no-explicit-any": "off",
+            semi: ["warn", "always"]
+        }
+    }
 ];

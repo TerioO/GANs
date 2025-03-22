@@ -28,3 +28,7 @@ the name of here if you want
  - [PIL](https://pypi.org/project/pillow/)
  - [Torchmetrics](https://lightning.ai/docs/torchmetrics/stable/)
  - [torch-summary](https://pypi.org/project/torch-summary/)
+ - [onnx](https://pypi.org/project/onnx/) You might need a previous version to make it work
+ - [onnxruntime](https://pypi.org/project/onnxruntime/)
+ - [protobuf](https://pypi.org/project/protobuf/) (For onnx - might not be needed)
+ - [cmake](https://pypi.org/project/cmake/) (For onnx - might not be needed)
