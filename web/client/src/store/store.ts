@@ -10,9 +10,7 @@ export const useStore = defineStore("store", () => {
     }
 
     function setServerStatus(value: "ON" | "OFF"){
-        console.log(value)
         serverStatus.value = value;
-        console.log(serverStatus.value)
     }
 
     return {
