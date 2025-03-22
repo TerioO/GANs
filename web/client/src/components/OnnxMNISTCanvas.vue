@@ -94,11 +94,13 @@ function createCanvasImageData() {
 <template>
     <form class="flex flex-col">
         <div class="flex items-end gap-4">
-            <div class="flex flex-col gap-1">
+            <div class="flex flex-col gap-1 relative">
                 <label for="batch-size" class="text-slate-500 text-sm">Batch size</label>
-                <InputNumber id="batch-size" v-model="form.batchSize" />
+                <InputNumber id="batch-size" v-model="form.batchSize" :invalid="invalidBatchSize" />
+                <p v-if="invalidBatchSize" class="absolute -bottom-7 text-red-500 text-sm">Values between [1,64]</p>
             </div>
-            <Button label="Generate" :disabled="loading" @click="$emit('generate', form.batchSize.toString())"></Button>
+            <Button label="Generate" :disabled="loading || invalidBatchSize"
+                @click="$emit('generate', form.batchSize.toString())"></Button>
         </div>
         <div v-show="loading" class="animate-pulse w-[10rem] h-[10rem] bg-gray-300 mt-6"></div>
         <div v-show="!loading && data" class="mt-6">
