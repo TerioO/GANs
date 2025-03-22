@@ -33,21 +33,10 @@ export const getGanSimpleV4Images = async (
         const dims = results.output.dims;
 
         const denormalized: any[] = [];
-        // for (let i = 0; i < dims[0]; i++) {
-        //     denormalized[i] = [];
-        //     for (let j = 0; j < dims[1]; j++) {
-        //         const value = results.output.data[i * dims[0] + j] as number;
-        //         denormalized[i][j] = Math.floor((value + 1) * 127.5);
-        //     }
-        // }
-        for(let i=0; i<results.output.data.length; i++){
-            const value = results.output.data[i] as number; 
+        for (let i = 0; i < results.output.data.length; i++) {
+            const value = results.output.data[i] as number;
             denormalized[i] = Math.floor((value + 1) * 127.5);
         }
-
-
-        console.log(results.output.data);
-        console.log(denormalized);
 
         const data: IOnnxRequest["data"] = {
             tensor: denormalized,
@@ -56,6 +45,7 @@ export const getGanSimpleV4Images = async (
 
         res.status(200).json(data);
     } catch (error) {
-        next(error);
+        if (createHttpError.isHttpError(error)) next(error);
+        else next(createHttpError(500, "Failed to run model"));
     }
 };

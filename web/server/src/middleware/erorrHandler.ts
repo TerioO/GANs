@@ -1,6 +1,7 @@
 import { Request, Response, NextFunction } from "express";
 import createHttpError from "http-errors";
 import type { IApiError } from "../types/global-types";
+import env from "../config/env";
 
 export const errorHandler = (error: unknown, req: Request, res: Response, next: NextFunction) => {
     let statusCode = 500;
@@ -12,8 +13,8 @@ export const errorHandler = (error: unknown, req: Request, res: Response, next: 
         statusCode = error.statusCode;
         apiError.message = error.message;
     } else if (error instanceof Error) {
-        apiError.message = error.message;
+        if(env.NODE_ENV == "dev") console.log(error);
     }
     res.status(statusCode).json(apiError);
-    console.log(error);
+    if(env.NODE_ENV == "dev") console.log(error);
 };

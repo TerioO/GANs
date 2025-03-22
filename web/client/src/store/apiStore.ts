@@ -1,7 +1,7 @@
 import { defineStore } from "pinia";
 import { useFetchWrapper } from "../hooks/useFetchWrapper";
-import axios from "axios";
 import type { IMsgResponse, IOnnxRequest } from "../types/api-types";
+import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
 

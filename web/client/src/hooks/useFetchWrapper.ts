@@ -16,10 +16,15 @@ export function useFetchWrapper<T, Payload = void>(request: (payload: Payload) =
     const trigger = async function (p: Payload) {
         try {
             loading.value = true;
+            isErr.value = false;
+            errMsg.value = null;
+            data.value = null;
+            axiosRes.value = null;
+            
             const res = await request(p);
             axiosRes.value = {
                 ...res,
-                ok: res.status > 200 && res.status <= 299 ? true : false
+                ok: res.status >= 200 && res.status <= 299 ? true : false
             };
             data.value = res.data;
         } catch (error) {
