@@ -4,8 +4,10 @@ import createHttpError from "http-errors";
 
 export const getServerStatus = async (req: Request, res: Response, next: NextFunction) => {
     try {
-        const response: IMsgResponse = { message: "Server ON" };
-        res.status(200).json(response);
+        setTimeout(() => {
+            const response: IMsgResponse = { message: "Server ON" };
+            res.status(200).json(response);
+        }, 1000);
     } catch (error) {
         next(error);
     }

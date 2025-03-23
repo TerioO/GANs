@@ -18,9 +18,9 @@ app
     theme: {
       preset: Aura,
       options: {
-        darkModeSelector: "nan",
-      },
-    },
+        darkModeSelector: "nan"
+      }
+    }
   })
   .use(ToastService)
   .mount("#app");

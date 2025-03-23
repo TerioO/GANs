@@ -1,18 +1,18 @@
 export interface IApiError {
-    message: string;
-    isError: boolean;
+  message: string;
+  isError: boolean;
 }
 
 export interface IMsgResponse {
-    message: string;
+  message: string;
 }
 
 export interface IOnnxRequest {
-    payload: {
-        batchSize: string;
-    };
-    data: {
-        tensor: any[];
-        dims: readonly number[];
-    }
+  payload: {
+    batchSize: string;
+  };
+  data: {
+    tensor: any[];
+    dims: readonly number[];
+  };
 }
