@@ -23,9 +23,7 @@ onMounted(() => {
       <RouterLink to="/" :active-class="activeClass">
         <i class="pi pi-home rounded-full !text-xl"></i>
       </RouterLink>
-      <RouterLink to="/gans/linear" :active-class="activeClass">
-        GANs
-      </RouterLink>
+      <RouterLink to="/gans/linear" :active-class="activeClass"> GANs </RouterLink>
     </div>
   </header>
 </template>

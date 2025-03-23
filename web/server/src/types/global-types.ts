@@ -14,5 +14,5 @@ export interface IOnnxRequest {
     data: {
         tensor: any[];
         dims: readonly number[];
-    }
+    };
 }

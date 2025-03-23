@@ -14,7 +14,8 @@ export const getGanSimpleV4Images = async (
     try {
         const batchSize = parseInt(req.query.batchSize);
         if (!batchSize) throw createHttpError(400, "batchSize must be a number");
-        if (batchSize < 1 || batchSize > 64) throw createHttpError(400, "batchSize must be in this interval: [1,64]");
+        if (batchSize < 1 || batchSize > 64)
+            throw createHttpError(400, "batchSize must be in this interval: [1,64]");
 
         const file = path.join(rootDir, "assets", "GAN_simple_v4.onnx");
         const session = await InferenceSession.create(file);

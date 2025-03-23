@@ -103,18 +103,13 @@ function createCanvasImageData() {
   <form class="flex flex-col">
     <div class="flex items-end gap-4">
       <div class="flex flex-col gap-1 relative">
-        <label for="batch-size" class="text-slate-500 text-sm"
-          >Batch size</label
-        >
+        <label for="batch-size" class="text-slate-500 text-sm">Batch size</label>
         <InputNumber
           id="batch-size"
           v-model="form.batchSize"
           :invalid="invalidBatchSize"
         />
-        <p
-          v-if="invalidBatchSize"
-          class="absolute -bottom-6 text-red-500 text-sm"
-        >
+        <p v-if="invalidBatchSize" class="absolute -bottom-6 text-red-500 text-sm">
           Values between [1,64]
         </p>
       </div>
@@ -150,9 +145,7 @@ function createCanvasImageData() {
     >
       <div class="h-full flex flex-col">
         <div class="mb-4">
-          <p class="mb-4 text-sm text-slate-500">
-            Canvas Scale ({{ canvasScale }})
-          </p>
+          <p class="mb-4 text-sm text-slate-500">Canvas Scale ({{ canvasScale }})</p>
           <Slider v-model="form.canvasScale" class="max-w-40" />
         </div>
         <div class="flex-1 overflow-auto flex items-center justify-center">

@@ -13,9 +13,7 @@ const activeClass = "font-bold  text-emerald-500";
       :style="{ top: `${appHeaderRef?.clientHeight}px` }"
     >
       <div class="container mx-auto flex justify-center gap-4">
-        <RouterLink to="/gans/linear" :active-class="activeClass"
-          >Linear</RouterLink
-        >
+        <RouterLink to="/gans/linear" :active-class="activeClass">Linear</RouterLink>
         <RouterLink to="/" :active-class="activeClass">DCGAN</RouterLink>
       </div>
     </div>

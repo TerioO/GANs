@@ -22,13 +22,11 @@ onUnmounted(() => clearInterval(interval.value));
   >
     <h1 class="text-xl mb-4">Waiting for server to turn on...</h1>
     <p>
-      Render shuts down the server if it's not in use, this might take 1 minute
-      or more.
+      Render shuts down the server if it's not in use, this might take 1 minute or more.
     </p>
     <p>You can try a refresh if it takes too long.</p>
     <div class="mt-4">
-      Currently waiting for: {{ minutes ? `${minutes}m` : "" }}
-      {{ timer % 60 }}s
+      Currently waiting for: {{ minutes ? `${minutes}m` : "" }} {{ timer % 60 }}s
     </div>
   </main>
 </template>

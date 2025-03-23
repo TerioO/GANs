@@ -17,14 +17,11 @@ export const useApiStore = defineStore("api", () => {
     return baseQuery.get("/api/server-status");
   });
 
-  const getGanSimpleV4 = useFetchWrapper<
-    IOnnxRequest["data"],
-    IOnnxRequest["payload"]
-  >((payload) => {
-    return baseQuery.get(
-      `/api/getGanSimpleV4Images?batchSize=${payload["batchSize"]}`
-    );
-  });
+  const getGanSimpleV4 = useFetchWrapper<IOnnxRequest["data"], IOnnxRequest["payload"]>(
+    (payload) => {
+      return baseQuery.get(`/api/getGanSimpleV4Images?batchSize=${payload["batchSize"]}`);
+    }
+  );
 
   return {
     baseQuery,
