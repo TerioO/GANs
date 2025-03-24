@@ -27,7 +27,7 @@ export async function evalOnnxModel(modelName: TOnnxModelName, batchSize: number
         denormalized[i] = Math.floor((value + 1) * 127.5);
     }
 
-    const res: IOnnxRequest["body"] = {
+    const res: IOnnxRequest["res"] = {
         tensor: denormalized,
         dims: results.output.dims,
         inShape,

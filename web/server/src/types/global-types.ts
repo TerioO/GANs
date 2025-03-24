@@ -22,7 +22,7 @@ export interface IOnnxRequest {
         batchSize: string;
         modelName: TOnnxModelName;
     };
-    body: {
+    res: {
         tensor: any[];
         dims: readonly number[];
     } & ModelData;

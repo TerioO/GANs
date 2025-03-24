@@ -17,7 +17,12 @@ export const router = createRouter({
         {
           path: "linear",
           name: "Linear",
-          component: () => import("./views/GANSimpleMNIST.vue")
+          component: () => import("./views/GANSimpleView.vue")
+        },
+        {
+          path: "dcgan",
+          name: "DCGAN",
+          component: () => import("./views/DCGANView.vue")
         }
       ]
     },

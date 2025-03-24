@@ -8,7 +8,7 @@ import Dialog from "primevue/dialog";
 
 interface Props {
   loading: boolean;
-  data: IOnnxRequest["body"] | null;
+  data: IOnnxRequest["res"] | null;
 }
 
 const props = defineProps<Props>();
@@ -192,10 +192,16 @@ function createCanvasImageData() {
           ></Button>
         </div>
         <div class="flex-1 overflow-auto flex items-center justify-center">
-          <canvas
-            ref="canvasModal"
-            :style="{ transform: `scale(${canvasScale})` }"
-          ></canvas>
+          <div
+            v-show="loading"
+            class="animate-pulse h-1/2 aspect-square bg-gray-300 mt-6"
+          ></div>
+          <div v-show="!loading && data">
+            <canvas
+              ref="canvasModal"
+              :style="{ transform: `scale(${canvasScale})` }"
+            ></canvas>
+          </div>
         </div>
       </div>
     </Dialog>

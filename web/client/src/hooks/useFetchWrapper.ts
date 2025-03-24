@@ -29,6 +29,7 @@ export function useFetchWrapper<T, Payload = void>(
         ok: res.status >= 200 && res.status <= 299 ? true : false
       };
       data.value = res.data;
+      return axiosRes;
     } catch (error) {
       if (error instanceof AxiosError) {
         const apiError = error as AxiosError<IApiError>;
