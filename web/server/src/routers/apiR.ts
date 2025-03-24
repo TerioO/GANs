@@ -5,6 +5,6 @@ import * as onnxC from "../controllers/onxxC";
 const router = express.Router();
 
 router.get("/api/server-status", api.getServerStatus);
-router.get("/api/getGanSimpleV4Images", onnxC.getGanSimpleV4Images);
+router.post("/api/run-gan", onnxC.runGAN);
 
 export default router;

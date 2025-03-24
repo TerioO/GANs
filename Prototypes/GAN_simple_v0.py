@@ -20,6 +20,7 @@ import shutil
 import helpers
 from torchsummary import summary
 from typing import TypedDict, Dict
+import torch.onnx
 
 class IFilenames(TypedDict):
     dir: str
@@ -263,7 +264,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=False)
+              skip=True)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
@@ -292,7 +293,23 @@ def main():
     view_result_images(gen_0, disc_0, 5, 5)
 
     # summary(gen_0, (1, 28, 28))
-
+    
+    def export_onnx(gen: nn.Module):
+        input = torch.randn([1,1,28,28]).to(device)
+        gen.to(device)
+        
+        path = os.path.join(helpers.get_parent_dir(), env["MODELS_STATE_DICT_DIR"], filenames["dir"], f"gan.onnx")
+        torch.onnx.export(gen,
+                          input,
+                          path,
+                          input_names=["input"],
+                          output_names=["output"],
+                          dynamic_axes={
+                              "input": { 0: "batch_size" },
+                              "output": { 0: "batch_size" }
+                          })
+    export_onnx(gen_0)
+    
     def playground():
         print()
 

@@ -16,8 +16,7 @@ onMounted(() => {
 <template>
   <header
     ref="header"
-    class="p-4 sticky top-0 z-10 bg-white"
-    style="box-shadow: 0px 0px 26px -14px black"
+    class="p-4 sticky top-0 z-10 bg-white border-b-2 border-gray-200"
   >
     <div class="container mx-auto flex items-center gap-4">
       <RouterLink to="/" :active-class="activeClass">

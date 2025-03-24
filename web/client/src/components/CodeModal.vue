@@ -38,7 +38,7 @@ const modalVisible = ref(false);
         }
       }"
     >
-      <highlightjs language="python" :code="code" />
+      <highlightjs language="python" :code="code" ></highlightjs>
     </Dialog>
   </div>
 </template>

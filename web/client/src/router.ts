@@ -32,7 +32,7 @@ export const router = createRouter({
 
 router.beforeEach((to, _from, next) => {
   const { serverStatus } = useStore();
-  
+
   if (serverStatus === "OFF" && to.name !== "Waiting") {
     return next({ name: "Waiting" });
   } else if (serverStatus === "ON" && to.name === "Waiting")

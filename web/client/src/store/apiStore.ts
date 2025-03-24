@@ -17,9 +17,9 @@ export const useApiStore = defineStore("api", () => {
     return baseQuery.get("/api/server-status");
   });
 
-  const getGanSimpleV4 = useFetchWrapper<IOnnxRequest["data"], IOnnxRequest["payload"]>(
+  const getGanSimpleV4 = useFetchWrapper<IOnnxRequest["body"], IOnnxRequest["payload"]>(
     (payload) => {
-      return baseQuery.get(`/api/getGanSimpleV4Images?batchSize=${payload["batchSize"]}`);
+      return baseQuery.post(`/api/run-gan`, payload);
     }
   );
 

@@ -3,13 +3,13 @@ import { useStore } from "../store/store";
 
 const { appHeaderRef } = useStore();
 
-const activeClass = "font-bold  text-emerald-500";
+const activeClass = "font-bold text-emerald-500";
 </script>
 <template>
   <main class="flex-1">
     <!-- Header -->
     <div
-      class="px-4 pt-8 pb-4 sticky z-5 bg-white"
+      class="px-4 pt-3 pb-3 sticky z-5 bg-white border-b-1 border-gray-200"
       :style="{ top: `${appHeaderRef?.clientHeight}px` }"
     >
       <div class="container mx-auto flex justify-center gap-4">

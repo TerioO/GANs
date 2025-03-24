@@ -8,10 +8,8 @@ export const getServerStatus = async (
     next: NextFunction
 ) => {
     try {
-        setTimeout(() => {
-            const response: IMsgResponse = { message: "Server ON" };
-            res.status(200).json(response);
-        }, 1000);
+        const response: IMsgResponse = { message: "Server ON" };
+        res.status(200).json(response);
     } catch (error) {
         next(error);
     }
