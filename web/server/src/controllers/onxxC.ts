@@ -19,7 +19,7 @@ export const runGAN = async (
         if(!onnxModelNames.includes(modelName)) throw createHttpError(400, "Invalid modelName");
 
         const data = await evalOnnxModel(modelName, batchSize);
-
+        
         res.status(200).json(data);
     } catch (error) {
         if (createHttpError.isHttpError(error)) next(error);

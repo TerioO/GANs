@@ -1,48 +1,30 @@
 <script setup lang="ts">
-import { reactive, watch } from "vue";
-import { useApiStore } from "../store/apiStore";
+import { watch } from "vue";
+import { runGAN } from "../store/api";
 import { useToast } from "primevue";
 import { CODE_GAN_simple_v0 } from "../assets/codeSnippets";
-import type { IOnnxRequest } from "../types/api-types";
 import OnnxGANCanvas from "../components/OnnxGANCanvas.vue";
 import CodeModal from "../components/CodeModal.vue";
 
-interface GAN {
-  loading: boolean;
-  data: IOnnxRequest["res"] | null;
-}
-
 const toast = useToast();
 
-const { runGAN } = useApiStore();
-
-const GAN_simple_v4: GAN = reactive({
-  loading: false,
-  data: null
-});
+const { trigger, req } = runGAN();
 
 watch(
-  () => runGAN.isErr,
+  () => req.isErr,
   (newValue) => {
     if (newValue)
       toast.add({
         severity: "error",
         summary: "API Error",
-        detail: runGAN.errMsg,
+        detail: req.errMsg,
         life: 3000
       });
   }
 );
 
 function generateGanSimpleV4(batchSize: string) {
-  GAN_simple_v4.loading = true;
-  runGAN
-    .trigger({ batchSize, modelName: "GAN_simple_v4" })
-    .then((res) => {
-      if (!res?.value) return;
-      GAN_simple_v4.data = res.value.data;
-    })
-    .finally(() => (GAN_simple_v4.loading = false));
+  trigger({ batchSize, modelName: "GAN_simple_v4" })
 }
 </script>
 <template>
@@ -51,8 +33,8 @@ function generateGanSimpleV4(batchSize: string) {
       <h2 class="text-xl font-bold mb-4">GAN_simple_v4 - MNIST</h2>
       <div class="ml-4">
         <OnnxGANCanvas
-          :loading="GAN_simple_v4.loading"
-          :data="GAN_simple_v4.data"
+          :loading="req.loading"
+          :data="req.data"
           @generate="generateGanSimpleV4"
         />
         <CodeModal

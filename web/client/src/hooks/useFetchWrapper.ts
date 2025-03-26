@@ -1,4 +1,4 @@
-import { ref } from "vue";
+import { reactive } from "vue";
 import { AxiosError, type AxiosResponse } from "axios";
 import type { IApiError } from "../types/api-types";
 
@@ -6,44 +6,54 @@ interface Data<T> extends AxiosResponse<T> {
   ok: boolean;
 }
 
+interface Req<T> {
+  loading: boolean;
+  isErr: boolean;
+  errMsg: string | null;
+  data: T | null;
+  axiosRes: Data<T> | null;
+}
+
 export function useFetchWrapper<T, Payload = void>(
   request: (payload: Payload) => Promise<AxiosResponse<T>>
 ) {
-  const loading = ref<boolean>(false);
-  const isErr = ref<boolean>(false);
-  const errMsg = ref<string | null>(null);
-  const data = ref<T | null>(null);
-  const axiosRes = ref<Data<T> | null>(null);
+  const req: Req<T> = reactive({
+    loading: false,
+    isErr: false,
+    errMsg: null,
+    data: null,
+    axiosRes: null
+  })
 
   const trigger = async function (p: Payload) {
     try {
-      loading.value = true;
-      isErr.value = false;
-      errMsg.value = null;
-      data.value = null;
-      axiosRes.value = null;
+      req.loading = true;
+      req.isErr = false;
+      req.errMsg = null;
+      req.data = null;
+      req.axiosRes = null;
 
       const res = await request(p);
-      axiosRes.value = {
+      req.axiosRes = {
         ...res,
         ok: res.status >= 200 && res.status <= 299 ? true : false
       };
-      data.value = res.data;
-      return axiosRes;
+      req.data = res.data;
+      return req.axiosRes;
     } catch (error) {
       if (error instanceof AxiosError) {
         const apiError = error as AxiosError<IApiError>;
         if (!apiError.response) return;
-        isErr.value = apiError.response.data.isError;
-        errMsg.value = apiError.response.data.message;
+        req.isErr = apiError.response.data.isError;
+        req.errMsg = apiError.response.data.message;
       } else if (error instanceof Error) {
-        errMsg.value = "Unknown error";
-        isErr.value = true;
+        req.errMsg = "Unknown error";
+        req.isErr = true;
       }
     } finally {
-      loading.value = false;
+      req.loading = false;
     }
   };
 
-  return { loading, isErr, errMsg, data, axiosRes, trigger };
+  return { req, trigger };
 }

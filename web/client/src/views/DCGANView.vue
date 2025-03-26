@@ -1,63 +1,41 @@
 <script setup lang="ts">
-import { watch, reactive } from "vue";
-import { useApiStore } from "../store/apiStore";
+import { watch } from "vue";
+import { runGAN } from "../store/api";
 import { useToast } from "primevue";
 import { CODE_DCGAN_MNIST_v0, CODE_DCGAN_Cats_v0 } from "../assets/codeSnippets";
-import type { IOnnxRequest } from "../types/api-types";
 import OnnxGANCanvas from "../components/OnnxGANCanvas.vue";
 import CodeModal from "../components/CodeModal.vue";
 
-interface DCGAN {
-  loading: boolean;
-  data: IOnnxRequest["res"] | null;
-}
-
 const toast = useToast();
 
-const { runGAN } = useApiStore();
+const DCGAN_MNIST_v0 = runGAN();
+const DCGAN_CATS_v0 = runGAN();
 
-const DCGAN_MNIST_v0: DCGAN = reactive({
-  loading: false,
-  data: null
-});
-const DCGAN_CATS_v0: DCGAN = reactive({
-  loading: false,
-  data: null
-});
-
-watch(
-  () => runGAN.isErr,
-  (newValue) => {
-    if (newValue)
-      toast.add({
+function createToastError(message: string | null){
+  toast.add({
         severity: "error",
         summary: "API Error",
-        detail: runGAN.errMsg,
+        detail: message,
         life: 3000
       });
-  }
-);
+}
+
+watch(() => DCGAN_MNIST_v0.req.isErr, (val) => {
+  if(val) createToastError(DCGAN_MNIST_v0.req.errMsg);
+});
+
+watch(() => DCGAN_CATS_v0.req.isErr, (val) => {
+  if(val) createToastError(DCGAN_CATS_v0.req.errMsg);
+})
 
 function generateDCGAN_MNIST_v0(batchSize: string) {
-  DCGAN_MNIST_v0.loading = true;
-  runGAN
+  DCGAN_MNIST_v0
     .trigger({ batchSize, modelName: "DCGAN_MNIST_v0" })
-    .then((res) => {
-      if (!res?.value) return;
-      DCGAN_MNIST_v0.data = res.value.data;
-    })
-    .finally(() => (DCGAN_MNIST_v0.loading = false));
 }
 
 function generateDCGAN_CATS_v0(batchSize: string) {
-  DCGAN_CATS_v0.loading = true;
-  runGAN
+  DCGAN_CATS_v0
     .trigger({ batchSize, modelName: "DCGAN_Cats_v0" })
-    .then((res) => {
-      if (!res?.value) return;
-      DCGAN_CATS_v0.data = res.value.data;
-    })
-    .finally(() => (DCGAN_CATS_v0.loading = false));
 }
 </script>
 <template>
@@ -66,8 +44,8 @@ function generateDCGAN_CATS_v0(batchSize: string) {
       <h2 class="text-xl font-bold mb-4">DCGAN_MNIST_v0</h2>
       <div class="ml-4">
         <OnnxGANCanvas
-          :loading="DCGAN_MNIST_v0.loading"
-          :data="DCGAN_MNIST_v0.data"
+          :loading="DCGAN_MNIST_v0.req.loading"
+          :data="DCGAN_MNIST_v0.req.data"
           @generate="generateDCGAN_MNIST_v0"
         />
         <CodeModal
@@ -93,8 +71,8 @@ function generateDCGAN_CATS_v0(batchSize: string) {
       <h2 class="text-xl font-bold mb-4">DCGAN_CATS_v0</h2>
       <div class="ml-4">
         <OnnxGANCanvas
-          :loading="DCGAN_CATS_v0.loading"
-          :data="DCGAN_CATS_v0.data"
+          :loading="DCGAN_CATS_v0.req.loading"
+          :data="DCGAN_CATS_v0.req.data"
           @generate="generateDCGAN_CATS_v0"
         />
         <CodeModal
