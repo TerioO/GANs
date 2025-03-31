@@ -72,7 +72,7 @@ function generateDCGAN_CATS_v0(batchSize: number) {
         <CodeModal
           class="mt-9"
           btn-label="View full code"
-          header="Code"
+          header="DCGAN_MNIST_v0"
           :code="CODE_DCGAN_MNIST_v0"
         />
         <div class="flex flex-col gap-4 mt-6">
@@ -99,7 +99,7 @@ function generateDCGAN_CATS_v0(batchSize: number) {
         <CodeModal
           class="mt-9"
           btn-label="View full code"
-          header="Code"
+          header="DCGAN_CATS_v0"
           :code="CODE_DCGAN_Cats_v0"
         />
         <div class="flex flex-col gap-4 mt-6">

@@ -52,7 +52,7 @@ function generateGanSimpleV4(batchSize: number) {
         <CodeModal
           class="mt-9"
           btn-label="View full code"
-          header="Code"
+          header="GAN_simple_v4 - MNIST"
           :code="CODE_GAN_simple_v0"
         />
         <div class="flex flex-col gap-4 mt-6">

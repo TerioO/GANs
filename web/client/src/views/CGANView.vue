@@ -2,7 +2,9 @@
 import { watch, ref } from "vue";
 import { runCGAN } from "../store/api";
 import { useCreateToasts } from "../hooks/useCreateToasts";
+import { CODE_CDCGAN_Cats_v0, CODE_CDCGAN_MNIST_v0 } from "../assets/codeSnippets";
 import OnnxCGANCanvas from "../components/OnnxCGANCanvas.vue";
+import CodeModal from "../components/CodeModal.vue";
 
 type OnnxCanvasData = {
   tensor: any[];
@@ -77,6 +79,12 @@ function generateCDCGAN_Cats_v0(batchSize: number, label: number) {
           :data="data_CDCGAN_MNIST_v0"
           @generate="generateCDGAN_MNIST_v0"
         />
+        <CodeModal
+          class="mt-9"
+          btn-label="View full code"
+          header="CDCGAN_MNIST_v0"
+          :code="CODE_CDCGAN_MNIST_v0"
+        />
         <div class="flex flex-col mt-6">
           <p>Labels: 0 -> 10</p>
           <p>Epochs: 200</p>
@@ -90,6 +98,12 @@ function generateCDCGAN_Cats_v0(batchSize: number, label: number) {
           :loading="CDCGAN_Cats_v0.req.loading"
           :data="data_CDCGAN_Cats_v0"
           @generate="generateCDCGAN_Cats_v0"
+        />
+        <CodeModal
+          class="mt-9"
+          btn-label="View full code"
+          header="CDCGAN_Cats_v0"
+          :code="CODE_CDCGAN_Cats_v0"
         />
         <div class="flex flex-col mt-6">
           <p>Labels: 0, 1</p>
