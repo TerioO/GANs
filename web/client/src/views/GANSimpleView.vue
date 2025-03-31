@@ -1,30 +1,42 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { watch, ref } from "vue";
 import { runGAN } from "../store/api";
-import { useToast } from "primevue";
 import { CODE_GAN_simple_v0 } from "../assets/codeSnippets";
 import OnnxGANCanvas from "../components/OnnxGANCanvas.vue";
 import CodeModal from "../components/CodeModal.vue";
+import { useCreateToasts } from "../hooks/useCreateToasts";
 
-const toast = useToast();
+type OnnxCanvasData =  {
+  tensor: any[];
+  dims: readonly number[];
+  imgSize: number;
+  channels: number;
+} | null;
+
+const { displayApiError } = useCreateToasts();
 
 const { trigger, req } = runGAN();
 
+const data = ref<OnnxCanvasData>(null);
+
 watch(
   () => req.isErr,
-  (newValue) => {
-    if (newValue)
-      toast.add({
-        severity: "error",
-        summary: "API Error",
-        detail: req.errMsg,
-        life: 3000
-      });
+  (val) => {
+    if (val)
+      displayApiError(req.errMsg)
   }
 );
 
-function generateGanSimpleV4(batchSize: string) {
-  trigger({ batchSize, modelName: "GAN_simple_v4" })
+function generateGanSimpleV4(batchSize: number) {
+  trigger({ batchSize, modelName: "GAN_simple_v4" }).then((res) => {
+    if (!res?.data) return;
+    data.value = {
+      tensor: res?.data.tensor,
+      dims: res?.data.dims,
+      imgSize: res?.data.imgSize,
+      channels: res?.data.outShape[1]
+    }
+  })
 }
 </script>
 <template>
@@ -34,7 +46,7 @@ function generateGanSimpleV4(batchSize: string) {
       <div class="ml-4">
         <OnnxGANCanvas
           :loading="req.loading"
-          :data="req.data"
+          :data="data"
           @generate="generateGanSimpleV4"
         />
         <CodeModal

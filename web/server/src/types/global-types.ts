@@ -7,23 +7,41 @@ export interface IMsgResponse {
     message: string;
 }
 
-export type TOnnxModelName = "GAN_simple_v4" | "DCGAN_MNIST_v0" | "DCGAN_Cats_v0";
+export type TOnnxGanNames = "GAN_simple_v4" | "DCGAN_MNIST_v0" | "DCGAN_Cats_v0" ;
+export type TOnnxCganNames = "CDCGAN_MNIST_v0" | "CDCGAN_Cats_v0";
 
-interface ModelData {
+interface GanModelData {
     imgSize: number;
     outShape: number[];
     inShape: number[];
 }
 
-export type TOnnxModel = Record<TOnnxModelName, ModelData>;
+interface CganModelData extends GanModelData {
+    numClasses: number;
+}
 
-export interface IOnnxRequest {
+export type TGanModel = Record<TOnnxGanNames, GanModelData>;
+export type TCganModel = Record<TOnnxCganNames, CganModelData>;
+
+export interface IOnnxGanRequest {
     payload: {
-        batchSize: string;
-        modelName: TOnnxModelName;
+        batchSize: number;
+        modelName: TOnnxGanNames;
     };
     res: {
         tensor: any[];
         dims: readonly number[];
-    } & ModelData;
+    } & GanModelData;
+}
+
+export interface IOnnxCganRequest {
+    payload: {
+        batchSize: number;
+        label: number;
+        modelName: TOnnxCganNames;
+    }
+    res: {
+        tensor: any[];
+        dims: readonly number[];
+    } & CganModelData
 }

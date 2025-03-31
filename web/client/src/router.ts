@@ -23,6 +23,11 @@ export const router = createRouter({
           path: "dcgan",
           name: "DCGAN",
           component: () => import("./views/DCGANView.vue")
+        },
+        {
+          path: "cgan",
+          name: "CGAN",
+          component: () => import("./views/CGANView.vue")
         }
       ]
     },

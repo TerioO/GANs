@@ -15,6 +15,7 @@ const activeClass = "font-bold text-emerald-500";
       <div class="container mx-auto flex justify-center gap-4">
         <RouterLink to="/gans/linear" :active-class="activeClass">Linear</RouterLink>
         <RouterLink to="/gans/dcgan" :active-class="activeClass">DCGAN</RouterLink>
+        <RouterLink to="/gans/cgan" :active-class="activeClass">CGAN</RouterLink>
       </div>
     </div>
     <RouterView />

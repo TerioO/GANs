@@ -1,5 +1,5 @@
 import { useFetchWrapper } from "../hooks/useFetchWrapper";
-import type { IMsgResponse, IOnnxRequest } from "../types/api-types";
+import type { IOnnxCganRequest, IMsgResponse, IOnnxGanRequest } from "../types/api-types";
 import axios from "axios";
 
 const baseURL = import.meta.env.VITE_API_BASE_URL;
@@ -17,6 +17,11 @@ export const getServerStatus = () =>
   });
 
 export const runGAN = () =>
-  useFetchWrapper<IOnnxRequest["res"], IOnnxRequest["payload"]>((payload) => {
+  useFetchWrapper<IOnnxGanRequest["res"], IOnnxGanRequest["payload"]>((payload) => {
     return baseQuery.post("/api/run-gan", payload);
+  });
+
+export const runCGAN = () =>
+  useFetchWrapper<IOnnxCganRequest["res"], IOnnxCganRequest["payload"]>((payload) => {
+    return baseQuery.post("/api/run-cgan", payload);
   });

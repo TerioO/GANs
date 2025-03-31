@@ -18,7 +18,7 @@ import math
 import subprocess
 
 
-def linear(x: torch.tensor, in_features: int, out_features: int):
+def linear(x: torch.Tensor, in_features: int, out_features: int):
     """
     https://pytorch.org/docs/stable/generated/torch.nn.Linear.html
 
@@ -33,17 +33,17 @@ def linear(x: torch.tensor, in_features: int, out_features: int):
     return lin(x)
 
 
-def conv2d(x: torch.tensor, 
-           in_channels: int, 
-           out_channels: int, 
-           kernel_size: int, 
-           stride: int = 1, 
-           padding: int = 0, 
-           dilation: int = 1, 
+def conv2d(x: torch.Tensor,
+           in_channels: int,
+           out_channels: int,
+           kernel_size: int,
+           stride: int = 1,
+           padding: int = 0,
+           dilation: int = 1,
            bias: bool = True):
     """
     https://pytorch.org/docs/stable/generated/torch.nn.Conv2d.html
-    
+
     Input Shape: [N, C, H, W]
 
     Output Shape: [N, Cout, Hout, Wout]
@@ -71,18 +71,19 @@ def conv2d(x: torch.tensor,
     print(f"conv2d expected output shape: [{x.shape[0]}, {y.shape[1]}, {H_out}, {W_out}] | actual shape: {y.shape}")
     return y
 
-def convTranspose2d(x: torch.tensor, 
-                    in_channels: int, 
-                    out_channels: int, 
-                    kernel_size: int, 
-                    stride: int = 1, 
-                    padding: int = 0, 
-                    output_padding: int = 0, 
-                    dilation: int = 1, 
+
+def convTranspose2d(x: torch.Tensor,
+                    in_channels: int,
+                    out_channels: int,
+                    kernel_size: int,
+                    stride: int = 1,
+                    padding: int = 0,
+                    output_padding: int = 0,
+                    dilation: int = 1,
                     bias: bool = True):
     """
     https://pytorch.org/docs/stable/generated/torch.nn.ConvTranspose2d.html
-    
+
     Input Shape: [N, C, H, W]
 
     Output Shape: [N, Cout, Hout, Wout]
@@ -111,6 +112,24 @@ def convTranspose2d(x: torch.tensor,
     print(f"convTranspose2d expected output shape: [{x.shape[0]}, {y.shape[1]}, {H_out}, {W_out}] | actual shape: {y.shape}")
     return y
 
+
+def embedding(x: torch.LongTensor, num_embeddings: int, embedding_dim: int):
+    """
+    https://pytorch.org/docs/stable/generated/torch.nn.Embedding.html
+
+    If x.shape = [32] --> y.shape = [32, embedding_dim]
+
+    If x.shape = [32, 1, 28, 28] --> y.shape = [32, 1, 28, 28, embedding_dim]
+
+    :param x: Input tensor (MUST BE **LongTensor** or **IntTensor**)
+    :param num_embeddings: Size of the dictionary to extract embeddings
+    :param embedding_dim: Size of each embedding vector
+    :return tensor.shape = [x.shape, embedding_dim]
+    """
+    emb = nn.Embedding(num_embeddings, embedding_dim)
+    return emb(x)
+
+
 def conv2d_example_0():
     train, _, _, _ = helpers.load_torch_dataset("MNIST", transforms.ToTensor(), 32)
     img, _ = next(iter(train))
@@ -121,7 +140,7 @@ def conv2d_example_0():
     y = conv2d(y, 8, 16, 3)                     # y.shape = [1,16,22,22]
     y = conv2d(y, 16, 32, 3)                    # y.shape = [1,32,20,20]
     y = y.view(-1, 20, 20)                      # y.shape = [32,20,20]
-    
+
     # From the original image [1,28,28] after a few convolutions
     # we get a shape of [32,20,20] which means there are 32 images
     # of HxW = 20x20
@@ -136,21 +155,23 @@ def conv2d_example_0():
     plt.tight_layout()
     plt.show()
 
+
 def convTranspose2d_example_0():
     train, _, _, _ = helpers.load_torch_dataset("MNIST", transforms.ToTensor(), 32)
     img, _ = next(iter(train))
-    
+
     y_conv = conv2d(torch.as_tensor(img).unsqueeze(dim=0), 1, 8, 1, 1)
     y_convTranspose = convTranspose2d(y_conv, 8, 1, 2, 1)
-    
-    plt.figure(figsize=(9,6))
-    plt.subplot(1,2,1)
+
+    plt.figure(figsize=(9, 6))
+    plt.subplot(1, 2, 1)
     plt.title("Original")
-    plt.imshow(img.view(28,28), cmap="gray")
-    plt.subplot(1,2,2)
+    plt.imshow(img.view(28, 28), cmap="gray")
+    plt.subplot(1, 2, 2)
     plt.title("After conv2d, convTranspose2d")
     plt.imshow(y_convTranspose.view(y_convTranspose.shape[2], y_convTranspose.shape[3]).detach().numpy(), cmap="gray")
     plt.show()
+
 
 def DCGAN_example_MNIST():
     sigmoid = nn.Sigmoid()
@@ -159,26 +180,27 @@ def DCGAN_example_MNIST():
     train, _, _, _ = helpers.load_torch_dataset("MNIST", transforms.ToTensor(), 32)
     img, _ = next(iter(train))
     x = torch.as_tensor(img).unsqueeze(dim=0)
-    
+
     y = conv2d(x, 1, int(1024/4), 4, 2, 1)
     y = conv2d(y, int(1024/4), int(1024/2), 4, 2, 1)
     y = conv2d(y, int(1024/2), 1024, 7, 1, 0)
     y = flatten(y)
     y = sigmoid(y)
     print(y.shape)
-    
+
     noise = torch.randn(1, 1024, 1, 1)
     y = convTranspose2d(noise, 1024, int(1024/2), 7, 1, 0)
     y = convTranspose2d(y, int(1024/2), int(1024/4), 4, 2, 1)
     y = convTranspose2d(y, int(1024/4), 1, 4, 2, 1)
 
+
 def create_light_dataset():
     ta, te, ta_dataloader, te_dataloader = helpers.load_custom_img_dataset(
-        "Cat and Dog", 
+        "Cat and Dog",
         transforms.Compose([
             transforms.Resize(size=(128, 128)),
             transforms.ToTensor()
-        ]), 
+        ]),
         32,
         light=True,
         purge=True,
@@ -192,10 +214,25 @@ def create_light_dataset():
     print("Train batches: ", ta_dataloader.batch_size, len(ta_dataloader))
     print("Test batches: ", te_dataloader.batch_size, len(te_dataloader))
 
+
 def main():
     os.system("cls")
-    train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset("MNIST",
-        transforms.ToTensor(), 32)
+    batch_size = 64
+    # train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset(
+    #     "MNIST",
+    #     transforms.ToTensor(),
+    #     batch_size
+    # )
+    train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
+        "Cat and Dog",
+        transforms.Compose([
+            transforms.Resize(size=(64, 64)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ]),
+        batch_size
+    )
+    num_classes = len(train.classes)
 
     flatten = nn.Flatten()
     sigmoid = nn.Sigmoid()
@@ -205,11 +242,11 @@ def main():
     # convTranspose2d_example_0()
     # DCGAN_example_MNIST()
 
-    create_light_dataset()
-    
-    # img, label = next(iter(ta))
+    # create_light_dataset()
     # img = img.permute(2,1,0)
     # print(img.shape)
     # plt.imshow(img)
     # plt.show()
+
+
 main()

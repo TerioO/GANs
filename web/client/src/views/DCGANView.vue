@@ -1,41 +1,62 @@
 <script setup lang="ts">
-import { watch } from "vue";
+import { watch, ref } from "vue";
 import { runGAN } from "../store/api";
-import { useToast } from "primevue";
 import { CODE_DCGAN_MNIST_v0, CODE_DCGAN_Cats_v0 } from "../assets/codeSnippets";
+import { useCreateToasts } from "../hooks/useCreateToasts";
 import OnnxGANCanvas from "../components/OnnxGANCanvas.vue";
 import CodeModal from "../components/CodeModal.vue";
 
-const toast = useToast();
+type OnnxCanvasData = {
+  tensor: any[];
+  dims: readonly number[];
+  imgSize: number;
+  channels: number;
+} | null;
+
+const { displayApiError } = useCreateToasts();
 
 const DCGAN_MNIST_v0 = runGAN();
 const DCGAN_CATS_v0 = runGAN();
 
-function createToastError(message: string | null){
-  toast.add({
-        severity: "error",
-        summary: "API Error",
-        detail: message,
-        life: 3000
-      });
+const data_DCGAN_MNIST_v0 = ref<OnnxCanvasData>(null);
+const data_DCGAN_CATS_v0 = ref<OnnxCanvasData>(null);
+
+watch(
+  () => DCGAN_MNIST_v0.req.isErr,
+  (val) => {
+    if (val) displayApiError(DCGAN_MNIST_v0.req.errMsg);
+  }
+);
+
+watch(
+  () => DCGAN_CATS_v0.req.isErr,
+  (val) => {
+    if (val) displayApiError(DCGAN_CATS_v0.req.errMsg);
+  }
+);
+
+function generateDCGAN_MNIST_v0(batchSize: number) {
+  DCGAN_MNIST_v0.trigger({ batchSize, modelName: "DCGAN_MNIST_v0" }).then((res) => {
+    if (!res) return;
+    data_DCGAN_MNIST_v0.value = {
+      tensor: res.data.tensor,
+      dims: res.data.dims,
+      imgSize: res.data.imgSize,
+      channels: res.data.outShape[1]
+    };
+  });
 }
 
-watch(() => DCGAN_MNIST_v0.req.isErr, (val) => {
-  if(val) createToastError(DCGAN_MNIST_v0.req.errMsg);
-});
-
-watch(() => DCGAN_CATS_v0.req.isErr, (val) => {
-  if(val) createToastError(DCGAN_CATS_v0.req.errMsg);
-})
-
-function generateDCGAN_MNIST_v0(batchSize: string) {
-  DCGAN_MNIST_v0
-    .trigger({ batchSize, modelName: "DCGAN_MNIST_v0" })
-}
-
-function generateDCGAN_CATS_v0(batchSize: string) {
-  DCGAN_CATS_v0
-    .trigger({ batchSize, modelName: "DCGAN_Cats_v0" })
+function generateDCGAN_CATS_v0(batchSize: number) {
+  DCGAN_CATS_v0.trigger({ batchSize, modelName: "DCGAN_Cats_v0" }).then((res) => {
+    if (!res) return;
+    data_DCGAN_CATS_v0.value = {
+      tensor: res.data.tensor,
+      dims: res.data.dims,
+      imgSize: res.data.imgSize,
+      channels: res.data.outShape[1]
+    };
+  });
 }
 </script>
 <template>
@@ -45,7 +66,7 @@ function generateDCGAN_CATS_v0(batchSize: string) {
       <div class="ml-4">
         <OnnxGANCanvas
           :loading="DCGAN_MNIST_v0.req.loading"
-          :data="DCGAN_MNIST_v0.req.data"
+          :data="data_DCGAN_MNIST_v0"
           @generate="generateDCGAN_MNIST_v0"
         />
         <CodeModal
@@ -72,7 +93,7 @@ function generateDCGAN_CATS_v0(batchSize: string) {
       <div class="ml-4">
         <OnnxGANCanvas
           :loading="DCGAN_CATS_v0.req.loading"
-          :data="DCGAN_CATS_v0.req.data"
+          :data="data_DCGAN_CATS_v0"
           @generate="generateDCGAN_CATS_v0"
         />
         <CodeModal
@@ -88,8 +109,8 @@ function generateDCGAN_CATS_v0(batchSize: string) {
             adapted to RGB images
           </p>
           <p>
-            Models where trained with a batch_size=64, Generator LR=2e-4 and
-            Discriminator LR=1e-4, both having used Adam optimizer with betas=(0.5, 0.999)
+            Models where trained with a batch_size=64, Generator LR=2e-4 and Discriminator
+            LR=1e-4, both having used Adam optimizer with betas=(0.5, 0.999)
           </p>
         </div>
       </div>

@@ -341,3 +341,31 @@ def get_gpu_info(returnType: Literal["dict", "string"]):
         return gpu
     elif returnType == "string":
         return f"GPU: {gpu["name"]} | MEMORY: {gpu['memory']} | COMPUTE: {gpu['compute_capability']}"
+    
+def make_grid_with_labels_in_order(size: int, dataloader: DataLoader, num_classes: int):
+    """
+    Returns an array of ordered tensors by labels from 0 -> len(labels)
+    
+    :param size: How many tensor to include in final output
+    :param dataloader: PyTorch Dataloader
+
+    >>> y = make_grid_with_labels_in_order(32, dataloader)
+    >>> # y.shape = [32, C, H, W]
+    """
+    tensors_to_add = []
+    count = 0
+    idx_to_skip = set()
+    
+    for _, (imgs, labels) in enumerate(dataloader):
+        idx_to_skip = set()
+        for _ in range(len(labels)):
+            for j in range(len(labels)):
+                if labels[j] == count and j not in idx_to_skip:
+                    idx_to_skip.add(j)
+                    tensors_to_add.append(imgs[j].unsqueeze(0))
+                    count = int((count + 1) % num_classes)
+                    if len(tensors_to_add) >= size: 
+                        return torch.cat(tensors_to_add, dim=0)
+                    break
+    
+    return None
