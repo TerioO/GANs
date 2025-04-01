@@ -143,9 +143,24 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
         
         if should_create: os.mkdir(paths["dataset_light_dir"])
         
+        about = {
+            "percent_train": percent_train,
+            "percent_test": percent_test,
+            "len_light_train": 0,
+            "len_light_test": 0,
+            "classes_light_train": 0,
+            "classes_light_test": 0,
+            "len_train": 0,
+            "len_test": 0,
+            "classes_train": 0,
+            "classes_test": 0
+        }
+        
         # Determine how many random labels to copy:
         train_labels = os.listdir(paths["train_dir"])
         test_labels = os.listdir(paths["test_dir"])
+        about["classes_train"] = [len(train_labels), train_labels]
+        about["classes_test"] = [len(test_labels), test_labels]
         k_labels = labels_count
         if labels_count > len(train_labels) or labels_count <= 0: k_labels = len(train_labels) 
         
@@ -155,6 +170,8 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
         train_labels = random.sample(train_labels, k=k_labels)
         random.seed(seed)
         test_labels = random.sample(test_labels, k=k_labels)
+        about["classes_light_train"] = [len(train_labels), train_labels]
+        about["classes_light_test"] = [len(test_labels), test_labels]
         
         if should_create_train:
             if not os.path.exists(paths["dataset_light_dir"]): os.mkdir(paths["dataset_light_dir"])
@@ -162,7 +179,10 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
             for label in tqdm(train_labels):
                 os.mkdir(os.path.join(paths["train_dir_light"], label))
                 images = os.listdir(os.path.join(paths["train_dir"], label))
-                for img in random.sample(images, k=int(len(images)*percent_train)):
+                k = int(len(images)*percent_train)
+                about["len_light_train"] += k
+                about["len_train"] += len(images)
+                for img in random.sample(images, k=k):
                     shutil.copy(src=f"{paths['train_dir']}/{label}/{img}", dst=f"{paths['train_dir_light']}/{label}/{img}")
         
         if should_create_test:
@@ -171,8 +191,14 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
             for label in tqdm(test_labels):
                 os.mkdir(os.path.join(paths["test_dir_light"], label))
                 images = os.listdir(os.path.join(paths["test_dir"], label))
-                for img in random.sample(images, k=int(len(images)*percent_test)):
+                k = int(len(images)*percent_test)
+                about["len_light_test"] += k
+                about["len_test"] += len(images)
+                for img in random.sample(images, k=k):
                     shutil.copy(src=f"{paths['test_dir']}/{label}/{img}", dst=f"{paths['test_dir_light']}/{label}/{img}")        
+        
+        json_path = os.path.join(paths["dataset_light_dir"], "about.json")
+        if purge: json.dump(about, open(json_path, "w"), indent=4)
         
         return getDataloaders(paths["train_dir_light"], paths["test_dir_light"])
         
@@ -367,5 +393,4 @@ def make_grid_with_labels_in_order(size: int, dataloader: DataLoader, num_classe
                     if len(tensors_to_add) >= size: 
                         return torch.cat(tensors_to_add, dim=0)
                     break
-    
     return None
