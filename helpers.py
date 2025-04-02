@@ -85,6 +85,8 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal 
     - "./dataset_name/test/label_name
     - "./dataset_name/test/label_name/img_1.png
     
+    A **train** dir is REQUIRED but a **test** dir is not. In this case return values of `test` and `test_dataloader` are `None`
+    
     The *light* dataset has the same shape as the original dataset, but root dir is named as: **"{original_dataset_name} light"**
     
     If you run this function with **light=True** it will create a *light* version of the original dataset.
@@ -99,7 +101,7 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal 
     :param batch_size: int
     :param light: If you want to use a light version of the original dataset, otherwise will return original dataset
     :param purge: If you want to delete the light dataset and recreate the light dataset
-    :param labels_count: How many labels from the original dataset you want to copy (*labels_count <= 0* --> copies all the labels)
+    :param labels_count: How many labels from the original dataset you want to copy (`labels_count <= 0` --> copies all the labels)
     :param percent_train: *Value in (0,1] interval*; How many train samples as percentage to copy from original dataset
     :param percent_test: *Value in (0,1] interval*; How many test samples as percentage to copy from original dataset
     :return: `train`, `test`, `train_dataloader`, `test_dataloader`
