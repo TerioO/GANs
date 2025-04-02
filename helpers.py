@@ -65,7 +65,7 @@ def load_torch_dataset(dataset: Literal["MNIST", "FashionMNIST"], transform, bat
     return train, test, train_dataloader, test_dataloader
 
 
-def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"], 
+def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal faces", "Human faces 2 genders", "Human faces emotions", "Manga faces", "Simpsons faces"], 
                             transform, 
                             batch_size: int, 
                             light: bool = False, 
@@ -120,19 +120,15 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
         print(f"Check that '{paths["train_dir"]}' dir exists")
         print("Exiting")
         return
-    if not os.path.exists(paths["test_dir"]):
-        print(f"Check that '{paths["test_dir"]}' dir exists")
-        print("Exiting")
-        return
     
     def getDataloaders(train_dir: str, test_dir: str):
-        train = torchvision.datasets.ImageFolder(
-            root=train_dir, transform=transform)
-        test = torchvision.datasets.ImageFolder(
-            root=test_dir, transform=transform)
-
+        train = torchvision.datasets.ImageFolder(root=train_dir, transform=transform)
         train_dataloader = DataLoader(train, batch_size, True)
-        test_dataloader = DataLoader(test, batch_size, True)
+        
+        test, test_dataloader = None, None
+        if os.path.exists(test_dir): 
+            test = torchvision.datasets.ImageFolder(root=test_dir, transform=transform)
+            test_dataloader = DataLoader(test, batch_size, True)
         
         return train, test, train_dataloader, test_dataloader
     
@@ -147,8 +143,8 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
             return
         
         should_create = True if not os.path.exists(paths["dataset_light_dir"]) else False
-        should_create_train = True if not os.path.exists(paths["train_dir_light"]) else False
-        should_create_test = True if not os.path.exists(paths["test_dir_light"]) else False
+        should_create_train = True if not os.path.exists(paths["train_dir_light"]) and os.path.exists(paths["train_dir"]) else False
+        should_create_test = True if not os.path.exists(paths["test_dir_light"]) and os.path.exists(paths["test_dir"]) else False
         
         if should_create: os.mkdir(paths["dataset_light_dir"])
         
@@ -214,9 +210,6 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
     else:
         if not os.path.exists(paths["train_dir"]): 
             print(f"Failed to create train dataloader. [Dir: '{paths["train_dir"]}' doesn't exist!]")
-            return
-        if not os.path.exists(paths["test_dir"]): 
-            print(f"Faield to create test dataloader. [Dir: '{paths["test_dir"]}' doesn't exist!]")
             return
 
         return getDataloaders(paths["train_dir"], paths["test_dir"])
