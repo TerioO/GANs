@@ -237,7 +237,9 @@ def main():
         percent_train=0.05,
     )
     num_classes = len(train.classes)
+    print(num_classes)
     print(train.classes)
+    print(train.class_to_idx)
     img, label = next(iter(train_dataloader))
     print(img.shape)
 

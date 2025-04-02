@@ -286,10 +286,10 @@ def train_GAN(filenames: IFilenames,
             imgs_real = helpers.make_grid_with_labels_in_order(N, dataloader_train, gen.num_classes)
             if imgs_real == None: imgs_real, _ = next(iter(dataloader_train))
             imgs_fake_grid = torchvision.utils.make_grid(img_fake.view(-1, 1, gen.img_size, gen.img_size),
-                                                         nrow=10,
+                                                         nrow=gen.num_classes,
                                                          normalize=True)
             imgs_real_grid = torchvision.utils.make_grid(imgs_real,
-                                                         nrow=10,
+                                                         nrow=gen.num_classes,
                                                          normalize=True)
 
             # Update global step (model is loaded/saved)
@@ -323,7 +323,7 @@ def train_GAN(filenames: IFilenames,
         # [TRAIN FINISH]
         # Save model and write to json:
         if epochs % epochs_to_save_at != 0:
-            json_log["epochs"] = len(json_log["results"])
+            json_log["epochs"] = global_step
             end_time = time.time()
             train_time_text = f"[{device}] [Epochs: {epochs % epochs_to_save_at}] Training time: {helpers.format_seconds(end_time - start_time)}"
             print(f"\n{train_time_text}")
@@ -342,16 +342,16 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_MNIST_v1/tensorboard"
+    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_FashionMNIST_v0/tensorboard"
     os.system("cls")
 
-    version = 1
+    version = 0
     filenames: IFilenames = {
-        "dir": f"CDCGAN_MNIST_v{version}",
+        "dir": f"CDCGAN_FashionMNIST_v{version}",
         "generator": f"gen",
         "discriminator": f"disc",
         "gan": f"gan",
-        "tensorboard": helpers.get_tensorboard_dir(f"CDCGAN_MNIST_v{version}")
+        "tensorboard": helpers.get_tensorboard_dir(f"CDCGAN_FashionMNIST_v{version}")
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     gen_lr = 2e-4
@@ -363,10 +363,10 @@ def main():
     ])
 
     train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset(
-        "MNIST",
+        "FashionMNIST",
         transform, batch_size)
 
-    gen_0 = Generator(input_channels=100, features=256, output_channels=1, num_classes=10, img_size=28)
+    gen_0 = Generator(input_channels=100, features=256, output_channels=1, num_classes=len(train.classes), img_size=28)
     disc_0 = Discriminator(input_channels=1, features=256, num_classes=10, img_size=28)
 
     gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr, betas=(0.5, 0.999))
@@ -388,7 +388,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=4,
+              epochs=10,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,
@@ -398,7 +398,7 @@ def main():
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
               skip=False,
-              epochs_to_save_at=2)
+              epochs_to_save_at=500)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,

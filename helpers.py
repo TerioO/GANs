@@ -30,7 +30,7 @@ class ModelCheckpoint(TypedDict):
     optimizer_state_dict: any
 
 
-def load_torch_dataset(dataset: Literal["MNIST"], transform, batch_size: int):
+def load_torch_dataset(dataset: Literal["MNIST", "FashionMNIST"], transform, batch_size: int):
     """
     Downloads/loads a given dataset from **torchvision** in **Datasets** root dir
 
@@ -47,6 +47,15 @@ def load_torch_dataset(dataset: Literal["MNIST"], transform, batch_size: int):
                                            download=True,
                                            transform=transform)
         test = torchvision.datasets.MNIST(root=env["DATASET_DIR"],
+                                          train=False,
+                                          download=True,
+                                          transform=transform)
+    elif dataset == "FashionMNIST":
+        train = torchvision.datasets.FashionMNIST(root=env["DATASET_DIR"],
+                                    train=True,
+                                    download=True,
+                                    transform=transform)
+        test = torchvision.datasets.FashionMNIST(root=env["DATASET_DIR"],
                                           train=False,
                                           download=True,
                                           transform=transform)

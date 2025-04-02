@@ -193,8 +193,33 @@ def train_GAN(filenames: IFilenames,
               disc: nn.Module,
               disc_optim: torch.optim.Optimizer,
               criterion: nn.Module,
-              skip: bool = False):
+              skip: bool = False,
+              epochs_to_save_at: int = 500):
     if skip: return
+    
+    def save_model():
+        helpers.save_or_load_model_checkpoint(
+            "save",
+            filenames["dir"],
+            filenames["generator"],
+            gen,
+            gen_optim,
+            checkpoint={
+                "model_state_dict": gen.state_dict(),
+                "optimizer_state_dict": gen_optim.state_dict()
+            }
+        )
+        helpers.save_or_load_model_checkpoint(
+            "save",
+            filenames["dir"],
+            filenames["discriminator"],
+            disc,
+            disc_optim,
+            checkpoint={
+                "model_state_dict": disc.state_dict(),
+                "optimizer_state_dict": disc_optim.state_dict()
+            }
+    )
     
     # Tensorboard init:
     writer = SummaryWriter(log_dir=filenames["tensorboard"],
@@ -202,13 +227,14 @@ def train_GAN(filenames: IFilenames,
 
     # JSON init:
     json_log = helpers.read_json_log(filenames["dir"], filenames["gan"])
-    results = []
+    initial_global_step = json_log["epochs"]
     disc_epoch_loss, gen_epoch_loss = 0, 0
     disc_epoch_acc_real, disc_epoch_acc_fake = 0, 0
     disc_epoch_acc_test = 0
 
     # Train time start:
     start_time = time.time()
+    true_start_time = time.time()
 
     try:
         # Models init:
@@ -294,7 +320,7 @@ def train_GAN(filenames: IFilenames,
                                                          normalize=True)
 
             # Update global step (model is loaded/saved)
-            global_step = json_log["epochs"] + epoch + 1
+            global_step = initial_global_step + epoch + 1
             print(f"\n\nGlobal Step: {global_step}")
             writer.add_image("Fake images", imgs_fake_grid, global_step)
             writer.add_image("Real images", imgs_real_grid, global_step)
@@ -304,42 +330,35 @@ def train_GAN(filenames: IFilenames,
             writer.add_scalar("D LOSS/epoch", disc_epoch_loss, global_step)
             writer.add_scalar("G LOSS/epoch", gen_epoch_loss, global_step)
 
-            # Write to JSON:
+            # Logs:
             text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}% [D Acc REAL - TEST]: {disc_epoch_acc_test*100:.2f}%"
-            results.append(text)
+            json_log["results"].append(text)
             print(f"Epoch [{epoch+1}/{epochs}] {text}\n")
+            
+            # Save model every n epochs:
+            if epoch > 0 and (epoch + 1) % epochs_to_save_at == 0:
+                print(f"\nSaving model at epoch: {epoch + 1}")
+                json_log["epochs"] = global_step
+                end_time = time.time()
+                train_time_text = f"[{device}] [Epochs: {epochs_to_save_at}] Training time: {helpers.format_seconds(end_time - start_time)}"
+                print(f"{train_time_text}\n")
+                json_log["train_durations"].append(train_time_text)
+                helpers.write_json_log(filenames["dir"], filenames["gan"], json_log)
+                save_model()
+                start_time = time.time()
 
         # [TRAIN FINISH]
-        # Calculate train time:
-        end_time = time.time()
-        train_time_text = f"Training time: {helpers.format_seconds(end_time - start_time)}"
-        print(f"\n{train_time_text}")
-
-        # Write to JSON:
-        json_log["results"] += results
-        json_log["epochs"] = len(json_log["results"])
-        json_log["train_durations"].append(f"[{device}] Epochs: {epochs} {train_time_text}")
-        helpers.write_json_log(filenames["dir"], filenames["gan"], json_log)
-
-        # Save state_dict:
-        helpers.save_or_load_model_checkpoint("save",
-                                              filenames["dir"],
-                                              filenames["generator"],
-                                              gen,
-                                              gen_optim,
-                                              checkpoint={
-                                                  "model_state_dict": gen.state_dict(),
-                                                  "optimizer_state_dict": gen_optim.state_dict()
-                                              })
-        helpers.save_or_load_model_checkpoint("save",
-                                              filenames["dir"],
-                                              filenames["discriminator"],
-                                              disc,
-                                              disc_optim,
-                                              checkpoint={
-                                                  "model_state_dict": disc.state_dict(),
-                                                  "optimizer_state_dict": disc_optim.state_dict()
-                                              })
+        # Save model and write to json:
+        if epochs % epochs_to_save_at != 0:
+            json_log["epochs"] = global_step
+            end_time = time.time()
+            train_time_text = f"[{device}] [Epochs: {epochs % epochs_to_save_at}] Training time: {helpers.format_seconds(end_time - start_time)}"
+            print(f"\n{train_time_text}")
+            json_log["train_durations"].append(train_time_text)
+            helpers.write_json_log(filenames["dir"], filenames["gan"], json_log)
+            save_model()
+        
+        print(f"\n[Epochs: {epochs}] Total train time: {helpers.format_seconds(end_time - true_start_time)}")
 
         # Tensorboard cleanup:
         writer.flush()
@@ -401,7 +420,7 @@ def main():
     )
     
     train_GAN(filenames=filenames,
-              epochs=1,
+              epochs=4,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,
@@ -410,7 +429,8 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=False)
+              skip=False,
+              epochs_to_save_at=2)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,

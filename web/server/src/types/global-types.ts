@@ -18,6 +18,9 @@ interface GanModelData {
 
 interface CganModelData extends GanModelData {
     numClasses: number;
+    classes: {
+        [key: number]: string
+    }
 }
 
 export type TGanModel = Record<TOnnxGanNames, GanModelData>;

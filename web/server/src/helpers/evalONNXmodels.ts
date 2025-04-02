@@ -73,9 +73,10 @@ export async function evalOnnxModelCGAN(modelName: TOnnxCganNames, batchSize: nu
         tensor: denormalized,
         dims: results.output.dims,
         imgSize: onnxCganModels[modelName].imgSize,
-        numClasses: onnxCganModels[modelName].numClasses,
         inShape,
-        outShape
+        outShape,
+        numClasses: onnxCganModels[modelName].numClasses,
+        classes: onnxCganModels[modelName].classes
     };
 
     return res;
