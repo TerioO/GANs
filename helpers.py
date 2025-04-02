@@ -161,26 +161,21 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal 
             "classes_test": 0
         }
         
-        # Determine how many random labels to copy:
-        train_labels = os.listdir(paths["train_dir"])
-        test_labels = os.listdir(paths["test_dir"])
-        about["classes_train"] = [len(train_labels), train_labels]
-        about["classes_test"] = [len(test_labels), test_labels]
-        k_labels = labels_count
-        if labels_count > len(train_labels) or labels_count <= 0: k_labels = len(train_labels) 
-        
-        # Get some random labels:
         seed = timeit.default_timer()
-        random.seed(seed)
-        train_labels = random.sample(train_labels, k=k_labels)
-        random.seed(seed)
-        test_labels = random.sample(test_labels, k=k_labels)
-        about["classes_light_train"] = [len(train_labels), train_labels]
-        about["classes_light_test"] = [len(test_labels), test_labels]
         
+        # [LIGHT TRAIN]
         if should_create_train:
+            train_labels = os.listdir(paths["train_dir"])
+            about["classes_train"] = [len(train_labels), train_labels]
+            k_labels = labels_count
+            if labels_count > len(train_labels) or labels_count <= 0: k_labels = len(train_labels) 
+            random.seed(seed)
+            train_labels = random.sample(train_labels, k=k_labels)
+            about["classes_light_train"] = [len(train_labels), train_labels]
+            
             if not os.path.exists(paths["dataset_light_dir"]): os.mkdir(paths["dataset_light_dir"])
             os.mkdir(paths["train_dir_light"])
+            
             for label in tqdm(train_labels):
                 os.mkdir(os.path.join(paths["train_dir_light"], label))
                 images = os.listdir(os.path.join(paths["train_dir"], label))
@@ -190,9 +185,19 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal 
                 for img in random.sample(images, k=k):
                     shutil.copy(src=f"{paths['train_dir']}/{label}/{img}", dst=f"{paths['train_dir_light']}/{label}/{img}")
         
+        # [LIGHT TEST]
         if should_create_test:
+            test_labels = os.listdir(paths["test_dir"])
+            about["classes_test"] = [len(test_labels), test_labels]
+            k_labels = labels_count
+            if labels_count > len(test_labels) or labels_count <= 0: k_labels = len(test_labels) 
+            random.seed(seed)
+            test_labels = random.sample(test_labels, k=k_labels)
+            about["classes_light_test"] = [len(test_labels), test_labels]
+            
             if not os.path.exists(paths["dataset_light_dir"]): os.mkdir(paths["dataset_light_dir"])
             os.mkdir(paths["test_dir_light"])
+            
             for label in tqdm(test_labels):
                 os.mkdir(os.path.join(paths["test_dir_light"], label))
                 images = os.listdir(os.path.join(paths["test_dir"], label))
@@ -202,6 +207,7 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal 
                 for img in random.sample(images, k=k):
                     shutil.copy(src=f"{paths['test_dir']}/{label}/{img}", dst=f"{paths['test_dir_light']}/{label}/{img}")        
         
+        # Write about.json
         json_path = os.path.join(paths["dataset_light_dir"], "about.json")
         if purge: json.dump(about, open(json_path, "w"), indent=4)
         

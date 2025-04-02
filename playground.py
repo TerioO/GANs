@@ -215,16 +215,26 @@ def create_light_dataset():
     print("Test batches: ", te_dataloader.batch_size, len(te_dataloader))
 
 
+def view_batch_images(x: torch.Tensor, nrow: int, normalize: bool = False):
+    grid = torchvision.utils.make_grid(x, nrow, normalize=normalize)
+    plt.figure(figsize=(16,9))
+    plt.imshow(grid.permute(1, 2, 0).numpy())
+    plt.axis(False)
+    plt.title("Batch of images")
+    plt.show()
+
 def main():
     os.system("cls")
-    batch_size = 64
+    
+    # [DATASET] ---------------------------------------------------------------------------------------------------------------
+    batch_size = 32
     # train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset(
     #     "MNIST",
     #     transforms.ToTensor(),
     #     batch_size
     # )
     train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
-        "Cat and Dog",
+        "Human faces 2 genders",
         transforms.Compose([
             transforms.Resize(size=(64, 64)),
             transforms.ToTensor(),
@@ -233,15 +243,20 @@ def main():
         batch_size,
         light=True,
         purge=True,
-        percent_test=0.05,
-        percent_train=0.05,
+        percent_test=0.4,
+        percent_train=0.4,
     )
+    # print(x)
     num_classes = len(train.classes)
-    print(num_classes)
-    print(train.classes)
-    print(train.class_to_idx)
-    img, label = next(iter(train_dataloader))
-    print(img.shape)
+    classes = train.classes
+    classes_to_idx = train.class_to_idx
+    print(f"\n[DATASET]\n")
+    print(f"num_classes: {num_classes}")
+    print(f"classes: {classes}")
+    print(f"classes_to_idx: {classes_to_idx}")
+    
+    imgs, labels = next(iter(train_dataloader))
+    view_batch_images(imgs, 8, True)
 
     flatten = nn.Flatten()
     sigmoid = nn.Sigmoid()
