@@ -10,7 +10,7 @@ const activeClass = "font-bold text-emerald-500";
     <!-- Header -->
     <div
       class="px-4 pt-3 pb-3 sticky z-5 bg-white border-b-1 border-gray-200"
-      :style="{ top: `${appHeaderRef?.clientHeight}px` }"
+      :style="{ top: `${appHeaderRef?.getBoundingClientRect().height}px` }"
     >
       <div class="container mx-auto flex justify-center gap-4">
         <RouterLink to="/gans/linear" :active-class="activeClass">Linear</RouterLink>

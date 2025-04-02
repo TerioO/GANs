@@ -76,7 +76,7 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101"],
     - "./dataset_name/test/label_name
     - "./dataset_name/test/label_name/img_1.png
     
-    The *light* dataset has the same shape as the original dataset, but root dir is names as: **"{original_dataset_name} light"**
+    The *light* dataset has the same shape as the original dataset, but root dir is named as: **"{original_dataset_name} light"**
     
     If you run this function with **light=True** it will create a *light* version of the original dataset.
     The *light* version is created ONCE if the directories for it don't exist, otherwise it will return the 
@@ -367,6 +367,7 @@ def get_gpu_info(returnType: Literal["dict", "string"]):
         return gpu
     elif returnType == "string":
         return f"GPU: {gpu["name"]} | MEMORY: {gpu['memory']} | COMPUTE: {gpu['compute_capability']}"
+    
     
 def make_grid_with_labels_in_order(size: int, dataloader: DataLoader, num_classes: int):
     """

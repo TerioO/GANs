@@ -431,6 +431,7 @@ def main():
     export_onnx(gen_0)
 
     def test(gen: nn.Module, disc: nn.Module):
+        print("\n[TEST]\n")
         gen.to(device)
         disc.to(device)
         

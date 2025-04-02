@@ -204,8 +204,8 @@ def create_light_dataset():
         32,
         light=True,
         purge=True,
-        percent_train=0.5,
-        percent_test=0.5,
+        percent_train=0.05,
+        percent_test=0.05,
         labels_count=0
     )
 
@@ -230,9 +230,16 @@ def main():
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ]),
-        batch_size
+        batch_size,
+        light=True,
+        purge=True,
+        percent_test=0.05,
+        percent_train=0.05,
     )
     num_classes = len(train.classes)
+    print(train.classes)
+    img, label = next(iter(train_dataloader))
+    print(img.shape)
 
     flatten = nn.Flatten()
     sigmoid = nn.Sigmoid()
