@@ -242,7 +242,7 @@ def main():
         ]),
         batch_size,
         light=True,
-        purge=True,
+        purge=False,
         percent_test=0.4,
         percent_train=0.4,
     )
