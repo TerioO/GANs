@@ -456,8 +456,8 @@ def main():
                           })
     # export_onnx(gen_0)
 
-    def test(gen: nn.Module, disc: nn.Module):
-        print("\n[TEST]\n")
+    def test_gan(gen: nn.Module, disc: nn.Module):
+        print("\n[_gan]\n")
         gen.to(device)
         disc.to(device)
         
@@ -473,6 +473,6 @@ def main():
         img_fake_pred = disc(img_fake)
         print(f"img_fake_pred.shape: {img_fake_pred.shape}")
     
-    test(gen_0, disc_0)
+    test_gan(gen_0, disc_0)
 
 main()

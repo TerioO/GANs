@@ -15,7 +15,21 @@ the name of here if you want
 
 
 ## Datasets that need to be downloaded manually
-- Cats & Dogs
+- [Cats & Dogs](https://www.kaggle.com/datasets/tongpython/cat-and-dog)
+- [food-101](https://www.kaggle.com/datasets/dansbecker/food-101)
+- [Animal faces](https://www.kaggle.com/datasets/andrewmvd/animal-faces)
+- [Human faces 2 genders](https://www.kaggle.com/datasets/ashwingupta3012/male-and-female-faces-dataset)
+- [Human faces emotions](https://www.kaggle.com/datasets/ananthu017/emotion-detection-fer)
+- [Manga faces](https://www.kaggle.com/datasets/davidgamalielarcos/manga-faces-dataset)
+- [Simpsons faces](https://www.kaggle.com/datasets/kostastokis/simpsons-faces)
+
+See `helpers.py` - `load_custom_img_dataset` on how to load these datasets in PyTorch.
+
+I haven't used every dataset from this list, but if you want to add more, make sure to add the name of the dir in `load_custom_img_dataset`. It's not required but it's nice to have intellisense. Also keep in mind to respect the folder structure, which you can view in the docstring of the function.
+
+```python
+def load_custom_img_dataset(dataset: Literal["Name of dataset dir"], ...)
+```
 
 ## Packages for this project
 
