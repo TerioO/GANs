@@ -4,8 +4,8 @@ This repository will contain some GAN applications.
 
 ## Project structure
 - 📁 `Datasets` at root will contain all the datasets used for every model (not saved on git)
-- 📁 `tensorboard` at any depth will contain data for **Tensorboard** (not saved on git)
-- 📁 `models state_dict` dir will contain the models state_dict as well as a json file detailing training, model
+- 📁 `models state_dict` dir will contain the models state_dict as well as a json file detailing losses, train durations, etc. (not saved on git)
+- 📁 `tensorboard` inside 📁 `models state_dict`/`model_name` will contain data for **Tensorboard** (not saved on git)
 - 📁 `Prototypes` will contain prototypes used for testing and tunning the models before releasing the final version
 architecture, hyperparameters and some results (loss, accuracy, etc.)
 - `env.py` contains state used across the project, currently stores the names for directories (Datasets, tensorboard, ...) which you can change
@@ -13,6 +13,7 @@ the name of here if you want
 - `helpers.py` will contain reusable functions for the scripts (they all come with documentation, read and use them as needed)
 - `playground.py` a place where you can test Pytorch layers usage, anything really
 
+I don't save training results on git as they are too large, but it would work just fine exporting the dirs from one machine to another as long as folder structure and naming is maintained.
 
 ## Datasets that need to be downloaded manually
 - [Cats & Dogs](https://www.kaggle.com/datasets/tongpython/cat-and-dog)
