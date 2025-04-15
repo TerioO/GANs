@@ -7,8 +7,12 @@ export interface IMsgResponse {
     message: string;
 }
 
-export type TOnnxGanNames = "GAN_simple_v4" | "DCGAN_MNIST_v0" | "DCGAN_Cats_v0" ;
-export type TOnnxCganNames = "CDCGAN_MNIST_v0" | "CDCGAN_Cats_v0" | "CDCGAN_Animal_Faces_v4";
+export type TOnnxGanNames = "GAN_simple_v4" | "DCGAN_MNIST_v0" | "DCGAN_Cats_v0";
+export type TOnnxCganNames =
+    | "CDCGAN_MNIST_v0"
+    | "CDCGAN_Cats_v0"
+    | "CDCGAN_Animal_Faces_v4"
+    | "CDCGAN_FashionMNIST_v0";
 
 interface GanModelData {
     imgSize: number;
@@ -19,8 +23,8 @@ interface GanModelData {
 interface CganModelData extends GanModelData {
     numClasses: number;
     classes: {
-        [key: number]: string
-    }
+        [key: number]: string;
+    };
 }
 
 export type TGanModel = Record<TOnnxGanNames, GanModelData>;
@@ -42,9 +46,9 @@ export interface IOnnxCganRequest {
         batchSize: number;
         label: number;
         modelName: TOnnxCganNames;
-    }
+    };
     res: {
         tensor: any[];
         dims: readonly number[];
-    } & CganModelData
+    } & CganModelData;
 }

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { watch, ref } from "vue";
+import { watch, ref, onMounted } from "vue";
 import { runCGAN } from "../store/api";
 import { useCreateToasts } from "../hooks/useCreateToasts";
 import {
@@ -7,8 +7,18 @@ import {
   CODE_CDCGAN_Cats_v0,
   CODE_CDCGAN_MNIST_v0
 } from "../assets/codeSnippets";
+import type { Ref } from "vue";
+import type { TOnnxCganNames } from "../types/api-types";
 import OnnxCGANCanvas from "../components/OnnxCGANCanvas.vue";
 import CodeModal from "../components/CodeModal.vue";
+
+type TCGANS = {
+  [key in TOnnxCganNames]: {
+    req: ReturnType<typeof runCGAN>;
+    data: Ref<OnnxCanvasData>;
+    fetch?: number;
+  };
+};
 
 type OnnxCanvasData = {
   tensor: any[];
@@ -19,75 +29,46 @@ type OnnxCanvasData = {
 
 const { displayApiError } = useCreateToasts();
 
-const CDCGAN_MNIST_v0 = runCGAN();
-const CDCGAN_Cats_v0 = runCGAN();
-const CDCGAN_Animal_Faces_v4 = runCGAN();
-
-const data_CDCGAN_MNIST_v0 = ref<OnnxCanvasData>(null);
-const data_CDCGAN_Cats_v0 = ref<OnnxCanvasData>(null);
-const data_CDCGAN_Animal_Faces_v4 = ref<OnnxCanvasData>(null);
-
-watch(
-  () => CDCGAN_MNIST_v0.req.isErr,
-  (val) => {
-    if (val) displayApiError(CDCGAN_MNIST_v0.req.errMsg);
+const CGANS: TCGANS = {
+  CDCGAN_MNIST_v0: {
+    req: runCGAN(),
+    data: ref<OnnxCanvasData>(null)
+  },
+  CDCGAN_Cats_v0: {
+    req: runCGAN(),
+    data: ref<OnnxCanvasData>(null)
+  },
+  CDCGAN_Animal_Faces_v4: {
+    req: runCGAN(),
+    data: ref<OnnxCanvasData>(null)
+  },
+  CDCGAN_FashionMNIST_v0: {
+    req: runCGAN(),
+    data: ref<OnnxCanvasData>(null)
   }
-);
+};
 
-watch(
-  () => CDCGAN_Cats_v0.req.isErr,
-  (val) => {
-    if (val) displayApiError(CDCGAN_Cats_v0.req.errMsg);
-  }
-);
+onMounted(() => {
+  Object.values(CGANS).forEach((el) => {
+    watch(
+      () => el.req.req.isErr,
+      (val) => {
+        if (val) displayApiError(el.req.req.errMsg);
+      }
+    );
+  });
+});
 
-watch(
-  () => CDCGAN_Animal_Faces_v4.req.isErr,
-  (val) => {
-    if (val) displayApiError(CDCGAN_Animal_Faces_v4.req.errMsg);
-  }
-);
-
-function generateCDGAN_MNIST_v0(batchSize: number, label: number) {
-  CDCGAN_MNIST_v0.trigger({ batchSize, label, modelName: "CDCGAN_MNIST_v0" }).then(
-    (res) => {
-      if (!res) return;
-      data_CDCGAN_MNIST_v0.value = {
-        tensor: res.data.tensor,
-        dims: res.data.dims,
-        imgSize: res.data.imgSize,
-        channels: res.data.outShape[1]
-      };
-    }
-  );
-}
-
-function generateCDCGAN_Cats_v0(batchSize: number, label: number) {
-  CDCGAN_Cats_v0.trigger({ batchSize, label, modelName: "CDCGAN_Cats_v0" }).then(
-    (res) => {
-      if (!res) return;
-      data_CDCGAN_Cats_v0.value = {
-        tensor: res.data.tensor,
-        dims: res.data.dims,
-        imgSize: res.data.imgSize,
-        channels: res.data.outShape[1]
-      };
-    }
-  );
-}
-
-function generateCDCGAN_Animal_Faces_v4(batchSize: number, label: number) {
-  CDCGAN_Cats_v0.trigger({ batchSize, label, modelName: "CDCGAN_Animal_Faces_v4" }).then(
-    (res) => {
-      if (!res) return;
-      data_CDCGAN_Animal_Faces_v4.value = {
-        tensor: res.data.tensor,
-        dims: res.data.dims,
-        imgSize: res.data.imgSize,
-        channels: res.data.outShape[1]
-      };
-    }
-  );
+function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
+  CGANS[modelName].req.trigger({ batchSize, label, modelName }).then((res) => {
+    if (!res) return;
+    CGANS[modelName].data.value = {
+      tensor: res.data.tensor,
+      dims: res.data.dims,
+      imgSize: res.data.imgSize,
+      channels: res.data.outShape[1]
+    };
+  });
 }
 </script>
 <template>
@@ -109,14 +90,14 @@ function generateCDCGAN_Animal_Faces_v4(batchSize: number, label: number) {
       <h2 class="text-xl font-bold mb-4">CDCGAN_Animal_Faces_v4</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
-          :loading="CDCGAN_Animal_Faces_v4.req.loading"
-          :data="data_CDCGAN_Animal_Faces_v4"
-          @generate="generateCDCGAN_Animal_Faces_v4"
+          :loading="CGANS['CDCGAN_Animal_Faces_v4'].req.req.loading"
+          :data="CGANS['CDCGAN_Animal_Faces_v4'].data.value"
+          @generate="(b, l) => generate(b, l, 'CDCGAN_Animal_Faces_v4')"
         />
         <CodeModal
           class="mt-9"
           btn-label="View full code"
-          header="CDCGAN_MNIST_v0"
+          header="CODE_CDCGAN_Animal_Faces_v4"
           :code="CODE_CDCGAN_Animal_Faces_v4"
         />
         <div class="flex flex-col mt-6">
@@ -135,12 +116,30 @@ function generateCDCGAN_Animal_Faces_v4(batchSize: number, label: number) {
       </div>
     </section>
     <section class="mt-9">
+      <h2 class="text-xl font-bold mb-4">CDCGAN_FashionMNIST_v0</h2>
+      <div class="ml-4">
+        <OnnxCGANCanvas
+          :loading="CGANS['CDCGAN_FashionMNIST_v0'].req.req.loading"
+          :data="CGANS['CDCGAN_FashionMNIST_v0'].data.value"
+          @generate="(b, l) => generate(b, l, 'CDCGAN_FashionMNIST_v0')"
+        />
+        <div class="flex flex-col mt-6">
+          <p>
+            Labels: [0, 10] ('T-shirt/top': 0, 'Trouser': 1, 'Pullover': 2, 'Dress': 3,
+            'Coat': 4, 'Sandal': 5, 'Shirt': 6, 'Sneaker': 7, 'Bag': 8, 'Ankle boot': 9)
+          </p>
+          <p>Epochs: 100</p>
+          <p>Dataset: PyTorch</p>
+        </div>
+      </div>
+    </section>
+    <section class="mt-9">
       <h2 class="text-xl font-bold mb-4">CDCGAN_MNIST_v0</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
-          :loading="CDCGAN_MNIST_v0.req.loading"
-          :data="data_CDCGAN_MNIST_v0"
-          @generate="generateCDGAN_MNIST_v0"
+          :loading="CGANS['CDCGAN_MNIST_v0'].req.req.loading"
+          :data="CGANS['CDCGAN_MNIST_v0'].data.value"
+          @generate="(b, l) => generate(b, l, 'CDCGAN_MNIST_v0')"
         />
         <CodeModal
           class="mt-9"
@@ -159,9 +158,9 @@ function generateCDCGAN_Animal_Faces_v4(batchSize: number, label: number) {
       <h2 class="text-xl font-bold mb-4">CDCGAN_Cats_v0</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
-          :loading="CDCGAN_Cats_v0.req.loading"
-          :data="data_CDCGAN_Cats_v0"
-          @generate="generateCDCGAN_Cats_v0"
+          :loading="CGANS['CDCGAN_Cats_v0'].req.req.loading"
+          :data="CGANS['CDCGAN_Cats_v0'].data.value"
+          @generate="(b, l) => generate(b, l, 'CDCGAN_Cats_v0')"
         />
         <CodeModal
           class="mt-9"
