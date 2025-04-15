@@ -108,7 +108,7 @@ function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
             <a
               href="https://www.kaggle.com/datasets/andrewmvd/animal-faces"
               target="_blank"
-              class="text-blue-500 hover:underline"
+              class="text-blue-500 hover:underline break-all text-wrap"
               >https://www.kaggle.com/datasets/andrewmvd/animal-faces</a
             >
           </p>
@@ -176,7 +176,7 @@ function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
             <a
               href="https://www.kaggle.com/datasets/tongpython/cat-and-dog"
               target="_blank"
-              class="text-blue-500 hover:underline"
+              class="text-blue-500 hover:underline break-all text-wrap"
               >https://www.kaggle.com/datasets/tongpython/cat-and-dog</a
             >
           </p>

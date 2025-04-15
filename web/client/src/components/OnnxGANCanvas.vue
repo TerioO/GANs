@@ -21,7 +21,7 @@ const emit = defineEmits<{
   (e: "generate", batchSize: number): void;
 }>();
 
-const onnxCanvas = useTemplateRef("onnxCanvas")
+const onnxCanvas = useTemplateRef("onnxCanvas");
 
 const form = reactive({
   batchSize: 1,
@@ -35,9 +35,9 @@ const invalidBatchSize = computed(() => {
 });
 
 const canvasScale = computed(() => {
-  const newValue = (1 + form.canvasScale / 20).toFixed(2)
+  const newValue = (1 + form.canvasScale / 20).toFixed(2);
   const canvas = onnxCanvas.value?.canvasModal;
-  if(canvas) canvas.style.transform = `scale(${canvasScale.value})`;
+  if (canvas) canvas.style.transform = `scale(${canvasScale.value})`;
   return newValue;
 });
 
@@ -51,7 +51,7 @@ function toggleModal() {
 </script>
 <template>
   <section class="flex flex-col">
-    <div class="flex items-end gap-4">
+    <div class="flex flex-col items-start lg:flex-row lg:items-end gap-4">
       <div class="flex flex-col gap-1 relative">
         <label for="batch-size" class="text-slate-500 text-sm">Batch size</label>
         <InputNumber
