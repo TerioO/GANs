@@ -108,7 +108,7 @@ defineExpose({ canvas, canvasModal });
       v-show="loading"
       class="animate-pulse w-[10rem] h-[10rem] bg-gray-300 mt-6"
     ></div>
-    <div v-show="!loading && data" class="mt-9 relative w-fit">
+    <div v-show="!loading && data" class="mt-9 relative overflow-x-auto">
       <canvas
         ref="canvas"
         class="w-fit h-fit cursor-pointer"
