@@ -52,7 +52,7 @@ function toggleModal() {
 </script>
 <template>
   <section class="flex flex-col">
-    <div class="flex items-end gap-4">
+    <div class="flex flex-col items-start lg:flex-row lg:items-end gap-4">
       <div class="flex flex-col gap-1 relative">
         <label for="batch-size" class="text-slate-500 text-sm">Batch size</label>
         <InputNumber
