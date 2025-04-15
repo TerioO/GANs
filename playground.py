@@ -234,14 +234,14 @@ def main():
     #     batch_size
     # )
     train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
-        "Human faces 2 genders",
+        "Animal faces",
         transforms.Compose([
             transforms.Resize(size=(64, 64)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ]),
         batch_size,
-        light=True,
+        light=False,
         purge=False,
         percent_test=0.4,
         percent_train=0.4,

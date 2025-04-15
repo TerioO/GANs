@@ -431,7 +431,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=False,
+              skip=True,
               epochs_to_save_at=40)
 
     def view_result_images(gen: nn.Module,
