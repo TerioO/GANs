@@ -76,14 +76,17 @@ def load_custom_img_dataset(dataset: Literal["Cat and Dog", "food-101", "Animal 
     """
     Load a custom image dataset using **torchvision.datasets.ImageFolder**
     
+    You must create a dedicated folder to store these datasets, when running with **light=True** the dir that is checked for existence
+    is **env["DATASET_LIGHT_DIR"]**
+    
     Custom image dataset shape, where *label_name* are the classes/labels of the samples:
     - "./dataset_name"
     - "./dataset_name/train"
-    - "./dataset_name/train/label_name
-    - "./dataset_name/train/label_name/img_1.png
+    - "./dataset_name/train/label_name"
+    - "./dataset_name/train/label_name/img_1.png"
     - "./dataset_name/test"
-    - "./dataset_name/test/label_name
-    - "./dataset_name/test/label_name/img_1.png
+    - "./dataset_name/test/label_name"
+    - "./dataset_name/test/label_name/img_1.png"
     
     A **train** dir is REQUIRED but a **test** dir is not. In this case return values of `test` and `test_dataloader` are `None`
     
@@ -385,8 +388,9 @@ def make_grid_with_labels_in_order(size: int, dataloader: DataLoader, num_classe
     
     :param size: How many tensor to include in final output
     :param dataloader: PyTorch Dataloader
+    :param num_classes: How many classes to include [0, train.classes]
 
-    >>> y = make_grid_with_labels_in_order(32, dataloader)
+    >>> y = make_grid_with_labels_in_order(32, dataloader, 3)
     >>> # y.shape = [32, C, H, W]
     """
     tensors_to_add = []

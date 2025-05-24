@@ -329,7 +329,7 @@ def train_GAN(filenames: IFilenames,
             # GAN loss progress tracking:
             if global_step % json_log["progress"]["epochs_to_track"] == 0:
                 disc_losses = json_log["progress"]["disc_loss"][(global_step - json_log["progress"]["epochs_to_track"]):global_step]
-               
+                
                 if (disc_losses[len(disc_losses) - 1] - disc_losses[0]) < 0:
                     json_log["progress"]["disc_lvl"] += 1
                 elif json_log["progress"]["disc_lvl"] >= 1: json_log["progress"]["disc_lvl"] -= 1

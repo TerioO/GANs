@@ -447,6 +447,7 @@ def main():
         noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         labels = torch.arange(0, gen.num_classes, dtype=torch.int).repeat(math.ceil(N/gen.num_classes))
         labels = torch.IntTensor(labels[:N]).to(device) 
+        
         with torch.inference_mode():
             imgs = gen(noise, labels)
             imgs = torchvision.utils.make_grid(imgs, nrow=nrow, normalize=True)
@@ -459,38 +460,6 @@ def main():
         plt.show()
             
     view_result_images(gen_0, disc_0, 180, 18)
-    
-    def view_img(gen: nn.Module,
-                disc: nn.Module):
-        gen.to(device)
-        disc.to(device)
-        gen.eval()
-        disc.eval()
-        
-        noise = torch.randn(1, gen.input_channels, 1, 1).to(device)
-        cat = torch.IntTensor(torch.tensor([0], dtype=torch.int)).to(device)
-        dog = torch.IntTensor(torch.tensor([1], dtype=torch.int)).to(device)
-        wild = torch.IntTensor(torch.tensor([2], dtype=torch.int)).to(device)
-        
-        img = gen(noise, dog)
-        img_grid = torchvision.utils.make_grid(img, nrow=2, normalize=True)
-        img_grid = torch.as_tensor(img_grid).permute(1, 2, 0).detach().cpu().numpy()
-        
-        pred = disc(img, cat)
-        print(pred.item())
-        pred = disc(img, dog)
-        print(pred.item())
-        pred = disc(img, wild)
-        print(pred.item())
-        
-        plt.figure(figsize=(16, 9))
-        plt.suptitle("Generated Images")
-        plt.imshow(img_grid)
-        plt.axis(False)
-        plt.show()
-        
-    # view_img(gen_0, disc_0)
-        
     
     def export_onnx(gen: nn.Module):
         gen.to(device)

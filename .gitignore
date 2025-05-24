@@ -1,3 +1,6 @@
+# Ignore Documentation
+Documentation
+
 # Ignore *dataset* folders
 ./**/dataset
 /Datasets*/

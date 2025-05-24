@@ -228,24 +228,24 @@ def main():
     
     # [DATASET] ---------------------------------------------------------------------------------------------------------------
     batch_size = 32
-    train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset(
-        "FashionMNIST",
-        transforms.ToTensor(),
-        batch_size
-    )
-    # train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
-    #     "Animal faces",
-    #     transforms.Compose([
-    #         transforms.Resize(size=(64, 64)),
-    #         transforms.ToTensor(),
-    #         transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
-    #     ]),
-    #     batch_size,
-    #     light=False,
-    #     purge=False,
-    #     percent_test=0.4,
-    #     percent_train=0.4,
+    # train, test, train_dataloader, test_dataloader = helpers.load_torch_dataset(
+    #     "FashionMNIST",
+    #     transforms.ToTensor(),
+    #     batch_size
     # )
+    train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
+        "Animal faces",
+        transforms.Compose([
+            transforms.Resize(size=(128, 128)),
+            transforms.ToTensor(),
+            transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
+        ]),
+        batch_size,
+        light=False,
+        purge=False,
+        percent_test=0.4,
+        percent_train=0.4,
+    )
     # print(x)
     num_classes = len(train.classes)
     classes = train.classes
@@ -256,7 +256,12 @@ def main():
     print(f"classes_to_idx: {classes_to_idx}")
     
     imgs, labels = next(iter(train_dataloader))
-    view_batch_images(imgs, 8, True)
+    print(imgs.shape)
+    y = imgs[0]
+    print(y.shape)
+    y = y.unsqueeze(0)
+    print(y.shape)
+    
 
     flatten = nn.Flatten()
     sigmoid = nn.Sigmoid()

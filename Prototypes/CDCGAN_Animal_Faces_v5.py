@@ -44,11 +44,12 @@ class Discriminator(nn.Module):
         # Hout = (H + 2 * padding - dilation * (kernel_size - 1) - 1)/stride + 1
         self.disc = nn.Sequential(
             # [N, input_channels, 128, 128]
-            self.conv2d_block(in_channels=input_channels + num_classes,
-                              out_channels=int(features/32),
-                              kernel_size=4,
-                              stride=2,
-                              padding=1),
+            nn.Conv2d(in_channels=input_channels + num_classes,
+                      out_channels=int(features/32),
+                      kernel_size=4,
+                      stride=2,
+                      padding=1),
+            nn.LeakyReLU(0.2),
             # H = W = (128 + 2 - 4)/2 + 1 = 63 + 1 = 64
             # [N, features/4, 64, 64]
             self.conv2d_block(in_channels=int(features/32),
@@ -137,35 +138,35 @@ class Generator(nn.Module):
                                        stride=2,
                                        padding=0),
             # H = W = 0 - 0 + 3 + 1 = 4
-            # [N, input_channels/2, 4, 4]
+            # [N, features/2, 4, 4]
             self.convTranspose2d_block(in_channels=int(features/2),
                                        out_channels=int(features/4),
                                        kernel_size=4,
                                        stride=2,
                                        padding=1),
             # H = W = (4-1)*2 - 2*1 + 1*(4-1) + 0 + 1 = 6 - 2 + 3 + 1 = 6 + 2 = 8
-            # [N, input_channels/4, 8, 8]
+            # [N, features/4, 8, 8]
             self.convTranspose2d_block(in_channels=int(features/4),
                             out_channels=int(features/8),
                             kernel_size=4,
                             stride=2,
                             padding=1),
             # H = W = 14 - 2 + 4 = 16
-            # [N, output_channels, 16, 16]
+            # [N, features/8, 16, 16]
             self.convTranspose2d_block(in_channels=int(features/8),
                 out_channels=int(features/16),
                 kernel_size=4,
                 stride=2,
                 padding=1),
             # H = W = 30 - 2 + 4 = 32
-            # [N, output_channels, 32, 32]
+            # [N, features/16, 32, 32]
             self.convTranspose2d_block(in_channels=int(features/16),
                 out_channels=int(features/32),
                 kernel_size=4,
                 stride=2,
                 padding=1),
             # H = W = 62 - 2 + 4 = 64
-            # [N, output_channels, 64, 64]
+            # [N, features/32, 64, 64]
             nn.ConvTranspose2d(in_channels=int(features/32),
                                out_channels=output_channels,
                                kernel_size=4,
@@ -370,10 +371,10 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_Animal_Faces_v4/tensorboard"
+    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_Animal_Faces_v5/tensorboard"
     os.system("cls")
 
-    version = 4
+    version = 5
     filenames: IFilenames = {
         "dir": f"CDCGAN_Animal_Faces_v{version}",
         "generator": f"gen",
@@ -423,7 +424,7 @@ def main():
     )
     
     train_GAN(filenames=filenames,
-              epochs=400,
+              epochs=2,
               device=device,
               dataloader_train=train_dataloader,
               gen=gen_0,
@@ -459,38 +460,6 @@ def main():
         plt.show()
             
     view_result_images(gen_0, disc_0, 180, 18)
-    
-    def view_img(gen: nn.Module,
-                disc: nn.Module):
-        gen.to(device)
-        disc.to(device)
-        gen.eval()
-        disc.eval()
-        
-        noise = torch.randn(1, gen.input_channels, 1, 1).to(device)
-        cat = torch.IntTensor(torch.tensor([0], dtype=torch.int)).to(device)
-        dog = torch.IntTensor(torch.tensor([1], dtype=torch.int)).to(device)
-        wild = torch.IntTensor(torch.tensor([2], dtype=torch.int)).to(device)
-        
-        img = gen(noise, dog)
-        img_grid = torchvision.utils.make_grid(img, nrow=2, normalize=True)
-        img_grid = torch.as_tensor(img_grid).permute(1, 2, 0).detach().cpu().numpy()
-        
-        pred = disc(img, cat)
-        print(pred.item())
-        pred = disc(img, dog)
-        print(pred.item())
-        pred = disc(img, wild)
-        print(pred.item())
-        
-        plt.figure(figsize=(16, 9))
-        plt.suptitle("Generated Images")
-        plt.imshow(img_grid)
-        plt.axis(False)
-        plt.show()
-        
-    # view_img(gen_0, disc_0)
-        
     
     def export_onnx(gen: nn.Module):
         gen.to(device)
