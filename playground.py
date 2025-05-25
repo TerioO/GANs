@@ -234,9 +234,9 @@ def main():
     #     batch_size
     # )
     train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
-        "Animal faces",
+        "Human faces emotions",
         transforms.Compose([
-            transforms.Resize(size=(128, 128)),
+            transforms.Resize(size=(48, 48)),
             transforms.ToTensor(),
             transforms.Normalize(mean=[0.5, 0.5, 0.5], std=[0.5, 0.5, 0.5])
         ]),
@@ -261,6 +261,11 @@ def main():
     print(y.shape)
     y = y.unsqueeze(0)
     print(y.shape)
+    
+    adam = torch.optim.Adam([torch.nn.Parameter(torch.randn(1))], lr=0.5)
+    print(adam.param_groups[0]['lr'])
+    helpers.change_optim_lr(adam, 20, [11, 20], [0.1, 0.2])
+    print(adam.param_groups[0]['lr'])
     
 
     flatten = nn.Flatten()

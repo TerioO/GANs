@@ -1,11 +1,14 @@
 import torch
-from typing import Literal, TextIO
+from typing import Literal, List, TextIO
 from typing import IO
 import torchvision
 from torch import nn
 from torchvision import transforms
 from torch.utils.data import DataLoader
 from torchvision import datasets
+from torchmetrics.image.fid import FrechetInceptionDistance
+from torchmetrics.image.kid import KernelInceptionDistance
+from torchmetrics.image.inception import InceptionScore
 import matplotlib.pyplot as plt
 import numpy as np
 from env import env
@@ -24,6 +27,10 @@ import subprocess
 from env import env
 import timeit
 import random
+import warnings
+
+# Disable torchvision "IS" and "KID" warning: https://github.com/JaidedAI/EasyOCR/issues/766
+warnings.filterwarnings("ignore", category=UserWarning)
 
 class ModelCheckpoint(TypedDict):
     model_state_dict: any
@@ -409,3 +416,109 @@ def make_grid_with_labels_in_order(size: int, dataloader: DataLoader, num_classe
                         return torch.cat(tensors_to_add, dim=0)
                     break
     return None
+
+def change_optim_lr(optim: torch.optim.Optimizer, global_step: int, steps_to_change_at: List[int], new_lrs: List[float]):
+    """
+    Change the optimizer's learning rate at some given **global_step**.
+    
+    Call this function after performing **global_step** update.
+    
+    :param optim: The optimizer.
+    :param global_step: The **global_step** of the training.
+    :param steps_to_change_at: Array of **global_step** values to change learning rate at.
+    :param new_lrs: Array of new learning rate values, must have same size as the other array.
+    """
+    for i in range(len(steps_to_change_at)):
+        if global_step == steps_to_change_at[i]:
+            for p in optim.param_groups:
+                p["lr"] = new_lrs[i]
+                
+def get_images_for_DCGAN_torchmetrics(gen: nn.Module, dataloader, device: str, num_batches=2, init_gen=False):
+    """
+    Create a batch of real and fake images to use with **torchmetrics** GAN evaluation methods (FID, IS, KID).
+    
+    Images are scaled from [-1, 1] --> [0, 1], so use **normalize=True** with above methods.
+    
+    :param gen: The generator network for a CDCGAN
+    :param dataloader: The dataloader
+    :param device: PyTorch device 
+    :param num_batches: How many batches to include in the result
+    :param init_gen: Sets generator in evaluation mode and to device, use this if generator is used outside training loop
+
+    >>> imgs_real, imgs_fake = get_images_for_DCGAN_torchmetrics(gen, train_dataloader, device, 4)
+    >>> # imgs_real.shape = [N*4, 3, 299, 299]
+    >>> # imgs_fake.shape = [N*4, 3, 299, 299]
+    """
+    def convert_imgs_to_torchmetrics_format(imgs: torch.Tensor):
+        imgs = (imgs + 1) / 2.0
+        if imgs.shape[1] == 1: # If image is grayscale, it needs to be turned in RGB
+            imgs = imgs.repeat(1, 3, 1, 1)
+        imgs = nn.functional.interpolate(imgs, size=(299, 299), mode="bilinear")
+        return imgs
+
+    if init_gen:
+        gen.to(device)
+        gen.eval()
+
+    imgs_real = []
+    imgs_fake = []
+    for batch_idx, (imgs, labels) in enumerate(dataloader):
+        if batch_idx > num_batches:
+            break
+        
+        # Real images:
+        imgs_real.append(torch.as_tensor(imgs, device=device))
+        
+        # Fake images:
+        N = imgs.shape[0]
+        noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
+        labels = torch.IntTensor(labels.type(torch.int)).to(device)
+        with torch.inference_mode():
+            imgs_fake.append(gen(noise, labels))
+        
+    imgs_real = convert_imgs_to_torchmetrics_format(torch.cat(imgs_real, dim=0))
+    imgs_fake = convert_imgs_to_torchmetrics_format(torch.cat(imgs_fake, dim=0))
+    return imgs_real, imgs_fake
+
+def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, return_img_arrays=False):
+    """
+    Calculate FID, IS or KID score. Can return the images used to calculate the score, in which case the return value is a tuple. 
+    See example bellow on how to use this function.
+    
+    :param gen: The generator network for a CDCGAN
+    :param dataloader: The dataloader
+    :param device: PyTorch device 
+    :param num_batches: How many batches to include in the result
+    :param metric_type: Which **torchvision** metric to use from given choices
+    :param init_gen: Sets generator in evaluation mode and to device, use this if generator is used outside training loop
+    :param return_img_arrays: If you want to get the img arrays used in metric evaluation
+    
+    >>> fid_score, imgs_real, imgs_fake = eval_fid(gen, train_dataloader, device, 4, "FID", return_img_arrays=True)
+    >>> # fid_score = float
+    >>> # imgs_real.shape = [N*4, 3, 299, 299]
+    >>> # imgs_fake.shape = [N*4, 3, 299, 299]
+    >>> kid_score = eval_fid(gen, train_dataloader, device, 4, "KID", return_img_arrays=False)
+    >>> # kid_score = float
+    """
+    imgs_real, imgs_fake = get_images_for_DCGAN_torchmetrics(gen, dataloader, device, num_batches, init_gen)
+    
+    with torch.inference_mode():
+        if metric_type == "FID":
+            metric = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+            metric.update(imgs_real, real=True)
+            metric.update(imgs_fake, real=False)
+            score = metric.compute().item()
+        elif metric_type == "KID":
+            metric = KernelInceptionDistance(subset_size=50, normalize=True).to(device)
+            metric.update(imgs_real, real=True)
+            metric.update(imgs_fake, real=False)
+            score = metric.compute()[0].item()
+        elif metric_type == "IS":
+            metric = InceptionScore(normalize=True).to(device)
+            metric.update(imgs_fake)
+            score = metric.compute()[0].item()
+        metric.reset()
+            
+    if return_img_arrays:
+        return score, imgs_real, imgs_fake
+    else: return score

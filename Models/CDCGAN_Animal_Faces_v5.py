@@ -51,28 +51,28 @@ class Discriminator(nn.Module):
                       padding=1),
             nn.LeakyReLU(0.2),
             # H = W = (128 + 2 - 4)/2 + 1 = 63 + 1 = 64
-            # [N, features/4, 64, 64]
+            # [N, features/32, 64, 64]
             self.conv2d_block(in_channels=int(features/32),
                               out_channels=int(features/16),
                               kernel_size=4,
                               stride=2,
                               padding=1),
             # H = W = (64 + 2 - 4)/2 + 1 = 31 + 1 = 32
-            # [N, features/4, 32, 32]
+            # [N, features/16, 32, 32]
             self.conv2d_block(in_channels=int(features/16),
                               out_channels=int(features/8),
                               kernel_size=4,
                               stride=2,
                               padding=1),
             # H = W = (32 + 2 - 4)/2 + 1 = 15 + 1 = 16
-            # [N, features/4, 16, 16]
+            # [N, features/8, 16, 16]
             self.conv2d_block(in_channels=int(features/8),
                               out_channels=int(features/4),
                               kernel_size=4,
                               stride=2,
                               padding=1),
             # H = W = (16 + 2 - 4)/2 + 1 = 7 + 1 = 8
-            # [N, features/2, 8, 8]
+            # [N, features/4, 8, 8]
             self.conv2d_block(in_channels=int(features/4),
                               out_channels=int(features/2),
                               kernel_size=4,

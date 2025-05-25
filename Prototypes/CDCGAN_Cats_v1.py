@@ -191,9 +191,9 @@ class Generator(nn.Module):
     # x.shape = [N, input_channels, 1, 1] 
     # labels.shape = [N]
     def forward(self, x, labels):
-        embedding = self.embedding(labels)              # [labels.shape, num_classes] = [N, 3]
-        embedding = embedding.unsqueeze(2).unsqueeze(3) # [N, 3, 1, 1]
-        input = torch.cat([x, embedding], dim=1)        # [N, input_channels + 3, H, W]
+        embedding = self.embedding(labels)              # [labels.shape, num_classes] = [N, 2]
+        embedding = embedding.unsqueeze(2).unsqueeze(3) # [N, 2, 1, 1]
+        input = torch.cat([x, embedding], dim=1)        # [N, input_channels + 2, H, W]
         output = self.gen(input)                        # [N, 3, H, W] 
         return output 
     
@@ -424,7 +424,7 @@ def main():
     )
     
     train_GAN(filenames=filenames,
-              epochs=80,
+              epochs=100,
               device=device,
               dataloader_train=train_dataloader,
               gen=gen_0,
@@ -433,7 +433,7 @@ def main():
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
               skip=False,
-              epochs_to_save_at=40)
+              epochs_to_save_at=50)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
