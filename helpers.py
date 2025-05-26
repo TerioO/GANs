@@ -433,21 +433,23 @@ def change_optim_lr(optim: torch.optim.Optimizer, global_step: int, steps_to_cha
             for p in optim.param_groups:
                 p["lr"] = new_lrs[i]
                 
-def get_images_for_DCGAN_torchmetrics(gen: nn.Module, dataloader, device: str, num_batches=2, init_gen=False):
+def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, empty_cuda_cache=True):
     """
-    Create a batch of real and fake images to use with **torchmetrics** GAN evaluation methods (FID, IS, KID).
-    
-    Images are scaled from [-1, 1] --> [0, 1], so use **normalize=True** with above methods.
+    Calculate FID, IS or KID score. Can return the images used to calculate the score, in which case the return value is a tuple. 
+    See example bellow on how to use this function.
     
     :param gen: The generator network for a CDCGAN
     :param dataloader: The dataloader
     :param device: PyTorch device 
     :param num_batches: How many batches to include in the result
+    :param metric_type: Which **torchvision** metric to use from given choices
     :param init_gen: Sets generator in evaluation mode and to device, use this if generator is used outside training loop
-
-    >>> imgs_real, imgs_fake = get_images_for_DCGAN_torchmetrics(gen, train_dataloader, device, 4)
-    >>> # imgs_real.shape = [N*4, 3, 299, 299]
-    >>> # imgs_fake.shape = [N*4, 3, 299, 299]
+    :param empty_cuda_cache: Option to release unoccupied memory held by caching allocators. Useful when doing evaluations inside training loops
+    
+    >>> fid_score = eval_fid(gen, train_dataloader, device, 4, "FID")
+    >>> # fid_score = float
+    >>> kid_score = eval_fid(gen, train_dataloader, device, 4, "KID")
+    >>> # kid_score = float
     """
     def convert_imgs_to_torchmetrics_format(imgs: torch.Tensor):
         imgs = (imgs + 1) / 2.0
@@ -459,75 +461,39 @@ def get_images_for_DCGAN_torchmetrics(gen: nn.Module, dataloader, device: str, n
     if init_gen:
         gen.to(device)
         gen.eval()
-
-    imgs_real = []
-    imgs_fake = []
-    # [TO DO] 
-    # Rewrite this so that images are passed to .update() by batch instead of concatenating them and passing one big batch at once.
-    # When doing this, remember to still pass the batches through convert_imgs_to_torchmetrics_format()
+    
+    metric = None
+    if metric_type == "FID": metric = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+    elif metric_type == "KID": metric = KernelInceptionDistance(subset_size=50, normalize=True).to(device)
+    elif metric_type == "IS": metric = InceptionScore(normalize=True).to(device)
+    
     for batch_idx, (imgs, labels) in enumerate(dataloader):
         if batch_idx > num_batches:
             break
         
         # Real images:
-        imgs_real.append(torch.as_tensor(imgs, device=device))
+        imgs_real = torch.as_tensor(imgs, device=device)
+        imgs_real = convert_imgs_to_torchmetrics_format(imgs_real)
         
         # Fake images:
         N = imgs.shape[0]
         noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         labels = torch.IntTensor(labels.type(torch.int)).to(device)
         with torch.inference_mode():
-            imgs_fake.append(gen(noise, labels))
+            imgs_fake = gen(noise, labels)
+            imgs_fake = convert_imgs_to_torchmetrics_format(imgs_fake)
         
-    imgs_real = convert_imgs_to_torchmetrics_format(torch.cat(imgs_real, dim=0))
-    imgs_fake = convert_imgs_to_torchmetrics_format(torch.cat(imgs_fake, dim=0))
-    return imgs_real, imgs_fake
-
-def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, return_img_arrays=False, empty_cuda_cache=True):
-    """
-    Calculate FID, IS or KID score. Can return the images used to calculate the score, in which case the return value is a tuple. 
-    See example bellow on how to use this function.
-    
-    :param gen: The generator network for a CDCGAN
-    :param dataloader: The dataloader
-    :param device: PyTorch device 
-    :param num_batches: How many batches to include in the result
-    :param metric_type: Which **torchvision** metric to use from given choices
-    :param init_gen: Sets generator in evaluation mode and to device, use this if generator is used outside training loop
-    :param return_img_arrays: If you want to get the img arrays used in metric evaluation
-    :param empty_cuda_cache: Option to release unoccupied memory held by caching allocators. Useful when doing evaluations inside training loops
-    
-    >>> fid_score, imgs_real, imgs_fake = eval_fid(gen, train_dataloader, device, 4, "FID", return_img_arrays=True)
-    >>> # fid_score = float
-    >>> # imgs_real.shape = [N*4, 3, 299, 299]
-    >>> # imgs_fake.shape = [N*4, 3, 299, 299]
-    >>> kid_score = eval_fid(gen, train_dataloader, device, 4, "KID", return_img_arrays=False)
-    >>> # kid_score = float
-    """
-    imgs_real, imgs_fake = get_images_for_DCGAN_torchmetrics(gen, dataloader, device, num_batches, init_gen)
-    
-    with torch.inference_mode():
-        if metric_type == "FID":
-            metric = FrechetInceptionDistance(feature=2048, normalize=True).to(device)
+        # Metric updates:
+        if metric_type == "IS": metric.update(imgs_fake)
+        else:
             metric.update(imgs_real, real=True)
             metric.update(imgs_fake, real=False)
-            score = metric.compute().item()
-        elif metric_type == "KID":
-            metric = KernelInceptionDistance(subset_size=50, normalize=True).to(device)
-            metric.update(imgs_real, real=True)
-            metric.update(imgs_fake, real=False)
-            score = metric.compute()[0].item()
-        elif metric_type == "IS":
-            metric = InceptionScore(normalize=True).to(device)
-            metric.update(imgs_fake)
-            score = metric.compute()[0].item()
-            
+    # [FOR END]
+    
+    score = metric.compute()
     metric.reset()
-    if empty_cuda_cache: torch.cuda.empty_cache()
-            
-    if return_img_arrays:
-        return score, imgs_real, imgs_fake
-    else: return score
+    if empty_cuda_cache: torch.cuda.empty_cache() 
+    return score.item() if metric_type == "FID" else score[0].item()
     
 def get_GAN_labels(global_step: int, steps_to_change_at: List[int], ranges: List[Tuple[float, float]], shape: torch.Size, ones) -> torch.Tensor:
     """
