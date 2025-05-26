@@ -263,14 +263,8 @@ def train_GAN(filenames: IFilenames,
                 # Update discriminator weights:
                 y_pred_fake = disc(img_fake, labels)
                 y_pred_real = disc(img, labels)    
-                disc_loss_fake = criterion(
-                    y_pred_fake,
-                    helpers.get_GAN_labels(curr_step, [140, 200], [(0, 0), (0.0, 0.1)], y_pred_fake.shape, ones=False).to(device) 
-                )
-                disc_loss_real = criterion(
-                    y_pred_real, 
-                    helpers.get_GAN_labels(curr_step, [140, 200], [(1, 1), (0.9, 1)], y_pred_real.shape, ones=True).to(device)
-                )
+                disc_loss_fake = criterion(y_pred_fake, torch.zeros(y_pred_fake.shape).to(device))
+                disc_loss_real = criterion(y_pred_real, torch.ones(y_pred_real.shape).to(device))
                 disc_loss = (disc_loss_fake + disc_loss_real)/2
                 disc_optim.zero_grad()
                 disc_loss.backward(retain_graph=True)
@@ -278,10 +272,7 @@ def train_GAN(filenames: IFilenames,
 
                 # Update generator weights:
                 y_pred_fake = disc(img_fake, labels)
-                gen_loss = criterion(
-                    y_pred_fake, 
-                    helpers.get_GAN_labels(curr_step, [5000], [(1, 1)], y_pred_fake.shape, ones=True).to(device)
-                )
+                gen_loss = criterion(y_pred_fake, torch.ones(y_pred_fake.shape).to(device))
                 gen_optim.zero_grad()
                 gen_loss.backward()
                 gen_optim.step()
