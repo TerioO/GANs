@@ -384,6 +384,8 @@ def main():
             "device": helpers.get_gpu_info("string"),
             "batch_size": batch_size,
             "epochs": 0,
+            "gen_lr": gen_lr,
+            "disc_lr": disc_lr,
             "train_durations": [],
             "metric": [],
             "results": []
@@ -392,7 +394,7 @@ def main():
     )
 
     train_GAN(filenames=filenames,
-              epochs=10,
+              epochs=75,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,

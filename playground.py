@@ -262,11 +262,9 @@ def main():
     y = y.unsqueeze(0)
     print(y.shape)
     
-    adam = torch.optim.Adam([torch.nn.Parameter(torch.randn(1))], lr=0.5)
-    print(adam.param_groups[0]['lr'])
-    helpers.change_optim_lr(adam, 20, [11, 20], [0.1, 0.2])
-    print(adam.param_groups[0]['lr'])
-    
+    print("\n[TEST]\n")
+    y1 = helpers.get_GAN_labels(4000, [100, 200, 300], [(1, 1), (0.5, 0.6), (0.9, 0.95)], (3), ones=True)
+    print(y1)
 
     flatten = nn.Flatten()
     sigmoid = nn.Sigmoid()

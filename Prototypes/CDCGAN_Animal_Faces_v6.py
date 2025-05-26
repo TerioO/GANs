@@ -322,6 +322,16 @@ def train_GAN(filenames: IFilenames,
             # Update global step (model is loaded/saved)
             global_step = initial_global_step + epoch + 1
             print(f"\n\nGlobal Step: {global_step}")
+            
+            # Calculate metric score every 5 epochs:
+            if global_step % 5 == 0:
+                metric_type = "KID"
+                print(f"Computing {metric_type}...")
+                score = helpers.metric_eval(gen, dataloader_train, device, 20, metric_type) # 640 real & 640 fake image
+                print(f"{metric_type}: {score:.4f} \n")
+                json_log["metric"].append(f"[Epoch: {global_step}] {metric_type}: {score:.4f}")
+                writer.add_scalar(f"{metric_type}", score, global_step)
+            
             # Write to tensorboard:
             writer.add_image("Fake images", imgs_fake_grid, global_step)
             writer.add_image("Real images", imgs_real_grid, global_step)
@@ -420,13 +430,14 @@ def main():
             "gen_lr": gen_lr,
             "disc_lr": disc_lr,
             "train_durations": [],
+            "metric": [],
             "results": [],
         },
         skip_if_exists=True
     )
     
     train_GAN(filenames=filenames,
-              epochs=10,
+              epochs=320,
               device=device,
               dataloader_train=train_dataloader,
               dataloader_test=test_dataloader,
@@ -435,7 +446,7 @@ def main():
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=True,
+              skip=False,
               epochs_to_save_at=40)
 
     def view_result_images(gen: nn.Module,
@@ -462,7 +473,7 @@ def main():
         plt.axis(False)
         plt.show()
             
-    # view_result_images(gen_0, disc_0, 180, 18)
+    view_result_images(gen_0, disc_0, 180, 18)
     
     def export_onnx(gen: nn.Module):
         gen.to(device)
@@ -482,7 +493,7 @@ def main():
                               "output": { 0: "batch_size" }
                           })
         
-    # export_onnx(gen_0)
+    export_onnx(gen_0)
 
     def test_gan(gen: nn.Module, disc: nn.Module):
         print("\n[TEST]\n")
@@ -503,10 +514,11 @@ def main():
 
     test_gan(gen_0, disc_0)
 
-    def FID():
-        print("Computing FID...")
-        score, _, _ = helpers.metric_FID(gen_0, train_dataloader, device, 20)
-        print(f"FID: {score}")
-    FID()
+    def get_GAN_score():
+        metric_type = "KID"
+        print(f"Computing {metric_type}...")
+        score = helpers.metric_eval(gen_0, train_dataloader, device, 20, "KID")
+        print(f"{metric_type}: {score}")
+    # get_GAN_score()
     
 main()

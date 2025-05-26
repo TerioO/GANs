@@ -1,5 +1,5 @@
 import torch
-from typing import Literal, List, TextIO
+from typing import Literal, List, TextIO, Tuple
 from typing import IO
 import torchvision
 from torch import nn
@@ -462,6 +462,9 @@ def get_images_for_DCGAN_torchmetrics(gen: nn.Module, dataloader, device: str, n
 
     imgs_real = []
     imgs_fake = []
+    # [TO DO] 
+    # Rewrite this so that images are passed to .update() by batch instead of concatenating them and passing one big batch at once.
+    # When doing this, remember to still pass the batches through convert_imgs_to_torchmetrics_format()
     for batch_idx, (imgs, labels) in enumerate(dataloader):
         if batch_idx > num_batches:
             break
@@ -480,7 +483,7 @@ def get_images_for_DCGAN_torchmetrics(gen: nn.Module, dataloader, device: str, n
     imgs_fake = convert_imgs_to_torchmetrics_format(torch.cat(imgs_fake, dim=0))
     return imgs_real, imgs_fake
 
-def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, return_img_arrays=False):
+def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, return_img_arrays=False, empty_cuda_cache=True):
     """
     Calculate FID, IS or KID score. Can return the images used to calculate the score, in which case the return value is a tuple. 
     See example bellow on how to use this function.
@@ -492,6 +495,7 @@ def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metri
     :param metric_type: Which **torchvision** metric to use from given choices
     :param init_gen: Sets generator in evaluation mode and to device, use this if generator is used outside training loop
     :param return_img_arrays: If you want to get the img arrays used in metric evaluation
+    :param empty_cuda_cache: Option to release unoccupied memory held by caching allocators. Useful when doing evaluations inside training loops
     
     >>> fid_score, imgs_real, imgs_fake = eval_fid(gen, train_dataloader, device, 4, "FID", return_img_arrays=True)
     >>> # fid_score = float
@@ -517,8 +521,34 @@ def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metri
             metric = InceptionScore(normalize=True).to(device)
             metric.update(imgs_fake)
             score = metric.compute()[0].item()
-        metric.reset()
+            
+    metric.reset()
+    if empty_cuda_cache: torch.cuda.empty_cache()
             
     if return_img_arrays:
         return score, imgs_real, imgs_fake
     else: return score
+    
+def get_GAN_labels(global_step: int, steps_to_change_at: List[int], ranges: List[Tuple[float, float]], shape: torch.Size, ones) -> torch.Tensor:
+    """
+    Return a tensor in a uniform distribution given by range values or a **torch.ones(shape)/torch.zeros(shape)** if **ranges=(1,1)/(0,0)**.
+    
+    :param global_step: Training loop **global_step**
+    :param steps_to_change_at: Will apply correspoding ranges for 
+    :param ranges: Array of range tuples for the uniform distributions
+    :param shape: The shape of the output tensor (a **torch.Size** object)
+    :param ones: If global_step > steps_to_change_at, return either a **torch.ones()/torch.zeros()** 
+    
+    >>> y1 = helpers.get_GAN_labels(global_step, [100, 200], [(1, 1), (0.5, 0.6)], (2), ones=True)
+    >>> # y = tensor([1., 1.]) (global_step = [0, 99])
+    >>> # y = tensor([0.55, 0.5]) (global_step = [100, 199]) 
+    >>> # y = tensor([1., 1.]) (global_step = [200, inf])
+    """
+    for i in range(len(steps_to_change_at)):
+        if global_step < steps_to_change_at[i]:
+            r1, r2 = ranges[i][0], ranges[i][1]
+            if r1 == r2 == 0: return torch.zeros(shape)
+            if r1 == r2 == 1: return torch.ones(shape)
+            else: return torch.FloatTensor(shape).uniform_(r1, r2)
+    
+    return torch.ones(shape) if ones else torch.zeros(shape)      
