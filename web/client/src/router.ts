@@ -41,11 +41,11 @@ export const router = createRouter({
 });
 
 router.beforeEach((to, _from, next) => {
-  const { serverStatus } = useStore();
+  const store = useStore();
 
-  if (serverStatus === "OFF" && to.name !== "Waiting") {
+  if (store.serverStatus === "OFF" && to.name !== "Waiting") {
     return next({ name: "Waiting" });
-  } else if (serverStatus === "ON" && to.name === "Waiting")
+  } else if (store.serverStatus === "ON" && to.name === "Waiting")
     return next({ name: "Home" });
   else next();
 });
