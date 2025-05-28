@@ -435,7 +435,7 @@ def change_optim_lr(optim: torch.optim.Optimizer, global_step: int, steps_to_cha
                 
 def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, empty_cuda_cache=True):
     """
-    Calculate FID, IS or KID score. Can return the images used to calculate the score, in which case the return value is a tuple. 
+    Calculate FID, IS or KID score.
     See example bellow on how to use this function.
     
     :param gen: The generator network for a CDCGAN

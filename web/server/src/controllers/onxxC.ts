@@ -48,9 +48,7 @@ export const runCGAN = async (
         
         res.status(200).json(data);
     } catch (error) {
-        console.log(error);
         if (createHttpError.isHttpError(error)) next(error);
         else next(createHttpError(500, "Failed to run model"));
-
     }
 };
