@@ -16,7 +16,6 @@ type TCGANS = {
   [key in TOnnxCganNames]: {
     req: ReturnType<typeof runCGAN>;
     data: Ref<OnnxCanvasData>;
-    fetch?: number;
   };
 };
 
