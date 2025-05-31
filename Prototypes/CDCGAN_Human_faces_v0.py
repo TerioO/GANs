@@ -187,7 +187,6 @@ def train_GAN(filenames: IFilenames,
               epochs: int,
               device: str,
               dataloader_train,
-              dataloader_test,
               gen: nn.Module,
               gen_optim: torch.optim.Optimizer,
               disc: nn.Module,
@@ -230,7 +229,6 @@ def train_GAN(filenames: IFilenames,
     initial_global_step = json_log["epochs"]
     disc_epoch_loss, gen_epoch_loss = 0, 0
     disc_epoch_acc_real, disc_epoch_acc_fake = 0, 0
-    disc_epoch_acc_test = 0
 
     # Train time start:
     start_time = time.time()
@@ -247,7 +245,6 @@ def train_GAN(filenames: IFilenames,
         for epoch in tqdm(range(epochs)):
             disc_epoch_acc_fake = 0
             disc_epoch_acc_real = 0
-            disc_epoch_acc_test = 0
             disc_epoch_loss = 0
             gen_epoch_loss = 0
             for _, (img, labels) in enumerate(dataloader_train):
@@ -293,22 +290,12 @@ def train_GAN(filenames: IFilenames,
                 disc_epoch_acc_real += y_pred_real.mean().item()
 
             # [EPOCH FINISH]
-            # Calculate accuracy on test dataset:
-            with torch.inference_mode():
-                for _, (img, labels) in enumerate(dataloader_test):
-                    img = torch.as_tensor(img, device=device)
-                    labels = torch.IntTensor(labels.type(torch.int)).to(device)
-                    pred = disc(img, labels)
-                    pred = pred.mean().item()
-                    disc_epoch_acc_test += pred
-            
             # Calculate total loss per epoch:
             disc_epoch_loss /= len(dataloader_train)
             gen_epoch_loss /= len(dataloader_train)
             # Calculate total accuracy per epoch:
             disc_epoch_acc_fake /= len(dataloader_train)
             disc_epoch_acc_real /= len(dataloader_train)
-            disc_epoch_acc_test /= len(dataloader_test)
 
             # Prepare some fake and real images for Tensorboard
             with torch.inference_mode():
@@ -322,10 +309,10 @@ def train_GAN(filenames: IFilenames,
             imgs_real = helpers.make_grid_with_labels_in_order(N, dataloader_train, gen.num_classes)
             if imgs_real == None: imgs_real, _ = next(iter(dataloader_train))
             imgs_fake_grid = torchvision.utils.make_grid(img_fake,
-                                                         nrow=9,
+                                                         nrow=8,
                                                          normalize=True)
             imgs_real_grid = torchvision.utils.make_grid(imgs_real,
-                                                         nrow=9,
+                                                         nrow=8,
                                                          normalize=True)
 
             # Update global step (model is loaded/saved)
@@ -346,17 +333,16 @@ def train_GAN(filenames: IFilenames,
             writer.add_image("Real images", imgs_real_grid, global_step)
             writer.add_scalar("D Acc REAL/epoch", disc_epoch_acc_real, global_step)
             writer.add_scalar("D Acc FAKE/epoch", disc_epoch_acc_fake, global_step)
-            writer.add_scalar("D Acc REAL/epoch - TEST dataset", disc_epoch_acc_test, global_step)
             writer.add_scalar("D LOSS/epoch", disc_epoch_loss, global_step)
             writer.add_scalar("G LOSS/epoch", gen_epoch_loss, global_step)
 
             # Logs:
-            text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}% [D Acc REAL - TEST]: {disc_epoch_acc_test*100:.2f}%"
+            text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}%"
             json_log["results"].append(text)
             print(f"Epoch [{epoch+1}/{epochs}] {text}\n")           
             
             # Decrease discriminator LR:
-            helpers.change_optim_lr(disc_optim, global_step, [336], [2e-4])
+            helpers.change_optim_lr(disc_optim, global_step, [400], [2e-4])
             
             # Save model every n epochs:
             if epoch > 0 and (epoch + 1) % epochs_to_save_at == 0:
@@ -392,16 +378,16 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_Animal_Faces_v7/tensorboard"
+    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_Human_faces_v0/tensorboard"
     os.system("cls")
 
-    version = 7
+    version = 0
     filenames: IFilenames = {
-        "dir": f"CDCGAN_Animal_Faces_v{version}",
+        "dir": f"CDCGAN_Human_faces_v{version}",
         "generator": f"gen",
         "discriminator": f"disc",
         "gan": f"gan",
-        "tensorboard": helpers.get_tensorboard_dir(f"CDCGAN_Animal_Faces_v{version}")
+        "tensorboard": helpers.get_tensorboard_dir(f"CDCGAN_Human_faces_v{version}")
     }
     device = "cuda" if torch.cuda.is_available() else "cpu"
     gen_lr = 2e-4
@@ -415,14 +401,14 @@ def main():
     ])
 
     train, test, train_dataloader, test_dataloader = helpers.load_custom_img_dataset(
-        "Animal faces",
+        "Human faces 2 genders",
         transform,
         batch_size,
         light=False
     )
 
-    gen_0 = Generator(input_channels=100, features=1024, output_channels=3, num_classes=len(train.classes), img_size=img_size)
-    disc_0 = Discriminator(input_channels=3, features=1024, num_classes=len(train.classes), img_size=img_size)
+    gen_0 = Generator(input_channels=100, features=2048, output_channels=3, num_classes=len(train.classes), img_size=img_size)
+    disc_0 = Discriminator(input_channels=3, features=2048, num_classes=len(train.classes), img_size=img_size)
 
     gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr, betas=(0.5, 0.999))
     disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr, betas=(0.5, 0.999))
@@ -453,17 +439,16 @@ def main():
     print("\n")
     
     train_GAN(filenames=filenames,
-              epochs=5,
+              epochs=200,
               device=device,
               dataloader_train=train_dataloader,
-              dataloader_test=test_dataloader,
               gen=gen_0,
               gen_optim=gen_0_optim,
               disc=disc_0,
               disc_optim=disc_0_optim,
               criterion=nn.BCELoss(),
-              skip=True,
-              epochs_to_save_at=40)
+              skip=False,
+              epochs_to_save_at=30)
 
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
@@ -488,7 +473,7 @@ def main():
         plt.imshow(imgs_grid)
         plt.axis(False)
         plt.show()  
-    # view_result_images(gen_0, disc_0, 180, 18)
+    view_result_images(gen_0, disc_0, 180, 18)
     
     def export_onnx(gen: nn.Module):
         gen.to(device)
@@ -507,7 +492,7 @@ def main():
                               "labels": { 0: "batch_size" },
                               "output": { 0: "batch_size" }
                           })
-    # export_onnx(gen_0)
+    export_onnx(gen_0)
 
     def test_gan(gen: nn.Module, disc: nn.Module):
         print("\n[TEST]\n")
@@ -532,6 +517,6 @@ def main():
         print(f"Computing {metric_type}...")
         score = helpers.metric_eval(gen_0, train_dataloader, device, 1000, metric_type)
         print(f"{metric_type}: {score}")
-    get_GAN_score()
+    # get_GAN_score()
     
 main()

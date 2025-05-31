@@ -21,7 +21,6 @@ import helpers
 from torchsummary import summary
 from typing import TypedDict, Dict
 
-
 class IFilenames(TypedDict):
     dir: str
     generator: str
@@ -45,51 +44,43 @@ class Discriminator(nn.Module):
         self.disc = nn.Sequential(
             # [N, input_channels, 128, 128]
             nn.Conv2d(in_channels=input_channels + num_classes,
-                      out_channels=int(features/32),
+                      out_channels=int(features/16),
                       kernel_size=4,
                       stride=2,
                       padding=1),
             nn.LeakyReLU(0.2),
-            # H = W = (128 + 2 - 4)/2 + 1 = 63 + 1 = 64
-            # [N, features/32, 64, 64]
-            self.conv2d_block(in_channels=int(features/32),
-                              out_channels=int(features/16),
-                              kernel_size=4,
-                              stride=2,
-                              padding=1),
-            # H = W = (64 + 2 - 4)/2 + 1 = 31 + 1 = 32
-            # [N, features/16, 32, 32]
+            # [N, features/16, 64, 64]
             self.conv2d_block(in_channels=int(features/16),
                               out_channels=int(features/8),
                               kernel_size=4,
                               stride=2,
                               padding=1),
-            # H = W = (32 + 2 - 4)/2 + 1 = 15 + 1 = 16
-            # [N, features/8, 16, 16]
+            # [N, features/8, 32, 32]
             self.conv2d_block(in_channels=int(features/8),
                               out_channels=int(features/4),
                               kernel_size=4,
                               stride=2,
                               padding=1),
-            # H = W = (16 + 2 - 4)/2 + 1 = 7 + 1 = 8
-            # [N, features/4, 8, 8]
+            # [N, features/4, 16, 16]
             self.conv2d_block(in_channels=int(features/4),
                               out_channels=int(features/2),
                               kernel_size=4,
                               stride=2,
                               padding=1),
-            # H = W = (8 + 2 - 4)/2 + 1 = 3 + 1 = 4
-            # [N, features/2, 4, 4]
-            nn.Conv2d(in_channels=int(features/2),
-                      out_channels=features,
+            # [N, features/2, 8, 8]
+            self.conv2d_block(in_channels=int(features/2),
+                              out_channels=features,
+                              kernel_size=4,
+                              stride=2,
+                              padding=1),
+            # [N, features, 4, 4]
+            nn.Conv2d(in_channels=features,
+                      out_channels=1,
                       kernel_size=4,
                       stride=1,
                       padding=0),
-            # H = W = (4 - 4)/1 + 1 = 1
-            # [N, features, 1, 1]
+            # [N, 1, 1, 1]
             nn.Flatten(),
-            # [N, features]
-            nn.Linear(in_features=features, out_features=1),
             # [N, 1]
             nn.Sigmoid()
             # [N, 1]
@@ -106,7 +97,7 @@ class Discriminator(nn.Module):
             nn.LeakyReLU(negative_slope=0.2)
         )
 
-    # x.shape = [N, input_channels, 64, 64] 
+    # x.shape = [N, input_channels, 128, 128] 
     # labels.shape = [N]
     def forward(self, x, labels):
         embedding = self.embedding(labels)              # [labels.shape, num_classes] = [N, 3]
@@ -133,46 +124,40 @@ class Generator(nn.Module):
         self.gen = nn.Sequential(
             # [N, input_channels, 1, 1]
             self.convTranspose2d_block(in_channels=input_channels + num_classes,
-                                       out_channels=int(features/2),
+                                       out_channels=features,
                                        kernel_size=4,
                                        stride=2,
                                        padding=0),
-            # H = W = 0 - 0 + 3 + 1 = 4
-            # [N, features/2, 4, 4]
+            # [N, features, 4, 4]
+            self.convTranspose2d_block(in_channels=features,
+                                       out_channels=int(features/2),
+                                       kernel_size=4,
+                                       stride=2,
+                                       padding=1),
+            # [N, features/2, 8, 8]
             self.convTranspose2d_block(in_channels=int(features/2),
                                        out_channels=int(features/4),
                                        kernel_size=4,
                                        stride=2,
                                        padding=1),
-            # H = W = (4-1)*2 - 2*1 + 1*(4-1) + 0 + 1 = 6 - 2 + 3 + 1 = 6 + 2 = 8
-            # [N, features/4, 8, 8]
+            # [N, features/4, 16, 16]
             self.convTranspose2d_block(in_channels=int(features/4),
-                            out_channels=int(features/8),
-                            kernel_size=4,
-                            stride=2,
-                            padding=1),
-            # H = W = 14 - 2 + 4 = 16
-            # [N, features/8, 16, 16]
+                                       out_channels=int(features/8),
+                                       kernel_size=4,
+                                       stride=2,
+                                       padding=1),
+            # [N, features/8, 32, 32]
             self.convTranspose2d_block(in_channels=int(features/8),
-                out_channels=int(features/16),
-                kernel_size=4,
-                stride=2,
-                padding=1),
-            # H = W = 30 - 2 + 4 = 32
-            # [N, features/16, 32, 32]
-            self.convTranspose2d_block(in_channels=int(features/16),
-                out_channels=int(features/32),
-                kernel_size=4,
-                stride=2,
-                padding=1),
-            # H = W = 62 - 2 + 4 = 64
-            # [N, features/32, 64, 64]
-            nn.ConvTranspose2d(in_channels=int(features/32),
+                                       out_channels=int(features/16),
+                                       kernel_size=4,
+                                       stride=2,
+                                       padding=1),
+            # [N, features/16, 64, 64]
+            nn.ConvTranspose2d(in_channels=int(features/16),
                                out_channels=output_channels,
                                kernel_size=4,
                                stride=2,
                                padding=1),
-            # H = W = 126 - 2 + 4 = 128
             # [N, output_channels, 128, 128]
             nn.Tanh()
         )
@@ -202,6 +187,7 @@ def train_GAN(filenames: IFilenames,
               epochs: int,
               device: str,
               dataloader_train,
+              dataloader_test,
               gen: nn.Module,
               gen_optim: torch.optim.Optimizer,
               disc: nn.Module,
@@ -244,6 +230,7 @@ def train_GAN(filenames: IFilenames,
     initial_global_step = json_log["epochs"]
     disc_epoch_loss, gen_epoch_loss = 0, 0
     disc_epoch_acc_real, disc_epoch_acc_fake = 0, 0
+    disc_epoch_acc_test = 0
 
     # Train time start:
     start_time = time.time()
@@ -260,50 +247,70 @@ def train_GAN(filenames: IFilenames,
         for epoch in tqdm(range(epochs)):
             disc_epoch_acc_fake = 0
             disc_epoch_acc_real = 0
+            disc_epoch_acc_test = 0
             disc_epoch_loss = 0
             gen_epoch_loss = 0
-            
             for _, (img, labels) in enumerate(dataloader_train):
                 img = torch.as_tensor(img, device=device)
-                labels_real = torch.IntTensor(labels.type(torch.int)).to(device)   # [N]
+                labels = torch.IntTensor(labels.type(torch.int)).to(device)   # [N]
+                curr_step = initial_global_step + epoch
 
                 # Generate a fake img from random noise:
-                input_noise = torch.randn(img.shape[0], gen.input_channels, 1, 1).to(device)               # [N, 100, 1, 1] 
-                labels_fake = torch.randint(0, gen.num_classes, labels.shape, dtype=torch.int)
-                labels_fake = torch.IntTensor(labels_fake).to(device) # [N]
-                img_fake = gen(input_noise, labels_fake)
+                input_noise = torch.randn(img.shape[0], gen.input_channels, 1, 1).to(device)    # [N, 100, 1, 1] 
+                img_fake = gen(input_noise, labels)
 
                 # Update discriminator weights:
-                y_pred_fake = disc(img_fake, labels_fake)
-                y_pred_real = disc(img, labels_real)    
-                disc_loss_fake = criterion(y_pred_fake, torch.zeros(y_pred_fake.shape).to(device))
-                disc_loss_real = criterion(y_pred_real, torch.ones(y_pred_real.shape).to(device))
+                y_pred_fake = disc(img_fake, labels)
+                y_pred_real = disc(img, labels)    
+                disc_loss_fake = criterion(
+                    y_pred_fake,
+                    helpers.get_GAN_labels(curr_step, [140, 300, 550, 700], [(0, 0), (0.0, 0.05), (0.0, 0.1), (0, 0.15)], y_pred_fake.shape, ones=False).to(device) 
+                )
+                disc_loss_real = criterion(
+                    y_pred_real, 
+                    helpers.get_GAN_labels(curr_step, [140, 300, 550, 700], [(1, 1), (0.95, 1), (0.9, 1), (1, 1)], y_pred_real.shape, ones=True).to(device)
+                )
                 disc_loss = (disc_loss_fake + disc_loss_real)/2
                 disc_optim.zero_grad()
                 disc_loss.backward(retain_graph=True)
                 disc_optim.step()
 
                 # Update generator weights:
-                y_pred_fake = disc(img_fake, labels_fake)
-                gen_loss = criterion(y_pred_fake, torch.ones(y_pred_fake.shape).to(device))
+                y_pred_fake = disc(img_fake, labels)
+                gen_loss = criterion(
+                    y_pred_fake, 
+                    helpers.get_GAN_labels(curr_step, [5000], [(1, 1)], y_pred_fake.shape, ones=True).to(device)
+                )
                 gen_optim.zero_grad()
                 gen_loss.backward()
                 gen_optim.step()
 
-                # Update results:
+                # Update loss tracking:
                 disc_epoch_loss += disc_loss.item()
                 gen_epoch_loss += gen_loss.item()
+                # Update accuracy tracking:
                 disc_epoch_acc_fake += y_pred_fake.mean().item()
                 disc_epoch_acc_real += y_pred_real.mean().item()
 
             # [EPOCH FINISH]
+            # Calculate accuracy on test dataset:
+            with torch.inference_mode():
+                for _, (img, labels) in enumerate(dataloader_test):
+                    img = torch.as_tensor(img, device=device)
+                    labels = torch.IntTensor(labels.type(torch.int)).to(device)
+                    pred = disc(img, labels)
+                    pred = pred.mean().item()
+                    disc_epoch_acc_test += pred
+            
             # Calculate total loss per epoch:
             disc_epoch_loss /= len(dataloader_train)
             gen_epoch_loss /= len(dataloader_train)
+            # Calculate total accuracy per epoch:
             disc_epoch_acc_fake /= len(dataloader_train)
             disc_epoch_acc_real /= len(dataloader_train)
+            disc_epoch_acc_test /= len(dataloader_test)
 
-            # Prepare some fake images for Tensorboard
+            # Prepare some fake and real images for Tensorboard
             with torch.inference_mode():
                 img, _ = next(iter(dataloader_train))
                 N = img.shape[0]
@@ -312,7 +319,6 @@ def train_GAN(filenames: IFilenames,
                 labels_grid = torch.IntTensor(labels_grid[:N]).to(device) 
                 img_fake = gen(noise, labels_grid)
 
-            # Write to Tensorboard:
             imgs_real = helpers.make_grid_with_labels_in_order(N, dataloader_train, gen.num_classes)
             if imgs_real == None: imgs_real, _ = next(iter(dataloader_train))
             imgs_fake_grid = torchvision.utils.make_grid(img_fake,
@@ -325,17 +331,32 @@ def train_GAN(filenames: IFilenames,
             # Update global step (model is loaded/saved)
             global_step = initial_global_step + epoch + 1
             print(f"\n\nGlobal Step: {global_step}")
+            
+            # Calculate metric score every 5 epochs:
+            if global_step % 5 == 0:
+                metric_type = "KID"
+                print(f"Computing {metric_type}...")
+                score = helpers.metric_eval(gen, dataloader_train, device, 20, metric_type) # 640 real & 640 fake image
+                print(f"{metric_type}: {score:.4f} \n")
+                json_log["metric"].append(f"[Epoch: {global_step}] {metric_type}: {score:.4f}")
+                writer.add_scalar(f"{metric_type}", score, global_step)
+            
+            # Write to tensorboard:
             writer.add_image("Fake images", imgs_fake_grid, global_step)
             writer.add_image("Real images", imgs_real_grid, global_step)
             writer.add_scalar("D Acc REAL/epoch", disc_epoch_acc_real, global_step)
             writer.add_scalar("D Acc FAKE/epoch", disc_epoch_acc_fake, global_step)
+            writer.add_scalar("D Acc REAL/epoch - TEST dataset", disc_epoch_acc_test, global_step)
             writer.add_scalar("D LOSS/epoch", disc_epoch_loss, global_step)
             writer.add_scalar("G LOSS/epoch", gen_epoch_loss, global_step)
 
             # Logs:
-            text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}%"
+            text = f"[D LOSS]: {disc_epoch_loss:.4f} [G LOSS]: {gen_epoch_loss:.4f} [D Acc REAL]: {disc_epoch_acc_real*100:.2f}% [D Acc FAKE]: {disc_epoch_acc_fake*100:.2f}% [D Acc REAL - TEST]: {disc_epoch_acc_test*100:.2f}%"
             json_log["results"].append(text)
             print(f"Epoch [{epoch+1}/{epochs}] {text}\n")           
+            
+            # Decrease discriminator LR:
+            helpers.change_optim_lr(disc_optim, global_step, [336], [2e-4])
             
             # Save model every n epochs:
             if epoch > 0 and (epoch + 1) % epochs_to_save_at == 0:
@@ -371,10 +392,10 @@ def train_GAN(filenames: IFilenames,
 
 # [MAIN PROGRAM] -----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 def main():
-    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Models/models state_dict/CDCGAN_Animal_Faces_v5/tensorboard"
+    # tensorboard --samples_per_plugin "images=1000,scalars=5000" --logdir="./Prototypes/models state_dict/CDCGAN_Animal_Faces_v7/tensorboard"
     os.system("cls")
 
-    version = 5
+    version = 7
     filenames: IFilenames = {
         "dir": f"CDCGAN_Animal_Faces_v{version}",
         "generator": f"gen",
@@ -400,8 +421,8 @@ def main():
         light=False
     )
 
-    gen_0 = Generator(input_channels=100, features=64 * 2**5, output_channels=3, num_classes=len(train.classes), img_size=img_size)
-    disc_0 = Discriminator(input_channels=3, features=64 * 2**5, num_classes=len(train.classes), img_size=img_size)
+    gen_0 = Generator(input_channels=100, features=1024, output_channels=3, num_classes=len(train.classes), img_size=img_size)
+    disc_0 = Discriminator(input_channels=3, features=1024, num_classes=len(train.classes), img_size=img_size)
 
     gen_0_optim = torch.optim.Adam(gen_0.parameters(), lr=gen_lr, betas=(0.5, 0.999))
     disc_0_optim = torch.optim.Adam(disc_0.parameters(), lr=disc_lr, betas=(0.5, 0.999))
@@ -418,15 +439,24 @@ def main():
             "gen_lr": gen_lr,
             "disc_lr": disc_lr,
             "train_durations": [],
+            "metric": [],
             "results": [],
         },
         skip_if_exists=True
     )
     
+    print("[LEARNING RATES]")
+    for p in gen_0_optim.param_groups:
+        print(f"GEN LR: {p["lr"]}")
+    for p in disc_0_optim.param_groups:
+        print(f"DISC LR: {p["lr"]}")
+    print("\n")
+    
     train_GAN(filenames=filenames,
-              epochs=2,
+              epochs=5,
               device=device,
               dataloader_train=train_dataloader,
+              dataloader_test=test_dataloader,
               gen=gen_0,
               gen_optim=gen_0_optim,
               disc=disc_0,
@@ -457,9 +487,8 @@ def main():
         plt.suptitle("Generated Images")
         plt.imshow(imgs_grid)
         plt.axis(False)
-        plt.show()
-            
-    view_result_images(gen_0, disc_0, 180, 18)
+        plt.show()  
+    # view_result_images(gen_0, disc_0, 180, 18)
     
     def export_onnx(gen: nn.Module):
         gen.to(device)
@@ -478,7 +507,7 @@ def main():
                               "labels": { 0: "batch_size" },
                               "output": { 0: "batch_size" }
                           })
-    export_onnx(gen_0)
+    # export_onnx(gen_0)
 
     def test_gan(gen: nn.Module, disc: nn.Module):
         print("\n[TEST]\n")
@@ -496,7 +525,13 @@ def main():
         
         pred = disc(img_fake, labels)
         print(f"pred.shape = {pred.shape}")
+    # test_gan(gen_0, disc_0)
 
-    test_gan(gen_0, disc_0)
-
+    def get_GAN_score():
+        metric_type = "FID"
+        print(f"Computing {metric_type}...")
+        score = helpers.metric_eval(gen_0, train_dataloader, device, 1000, metric_type)
+        print(f"{metric_type}: {score}")
+    get_GAN_score()
+    
 main()

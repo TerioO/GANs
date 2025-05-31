@@ -433,7 +433,7 @@ def change_optim_lr(optim: torch.optim.Optimizer, global_step: int, steps_to_cha
             for p in optim.param_groups:
                 p["lr"] = new_lrs[i]
                 
-def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, empty_cuda_cache=True):
+def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metric_type: Literal["FID, KID, IS"], init_gen=False, empty_cuda_cache=True, cgan=True):
     """
     Calculate FID, IS or KID score.
     See example bellow on how to use this function.
@@ -445,6 +445,7 @@ def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metri
     :param metric_type: Which **torchvision** metric to use from given choices
     :param init_gen: Sets generator in evaluation mode and to device, use this if generator is used outside training loop
     :param empty_cuda_cache: Option to release unoccupied memory held by caching allocators. Useful when doing evaluations inside training loops
+    :param cgan: If false will pass only the noise to the generator
     
     >>> fid_score = eval_fid(gen, train_dataloader, device, 4, "FID")
     >>> # fid_score = float
@@ -480,7 +481,7 @@ def metric_eval(gen: nn.Module, dataloader, device: str, num_batches: int, metri
         noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         labels = torch.IntTensor(labels.type(torch.int)).to(device)
         with torch.inference_mode():
-            imgs_fake = gen(noise, labels)
+            imgs_fake = gen(noise, labels) if cgan else gen(noise)
             imgs_fake = convert_imgs_to_torchmetrics_format(imgs_fake)
         
         # Metric updates:

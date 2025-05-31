@@ -429,6 +429,15 @@ def main():
         plt.imshow(imgs_grid)
         plt.axis(False)
         plt.show()
+        
+        imgs_real = helpers.make_grid_with_labels_in_order(150, train_dataloader, gen.num_classes)
+        imgs_real = torchvision.utils.make_grid(imgs_real, nrow=10, normalize=True)
+        imgs_real = torch.as_tensor(imgs_real).permute(1, 2, 0).detach().cpu().numpy()
+        plt.figure(figsize=(16,9))
+        plt.suptitle("MNIST - Real Images")
+        plt.imshow(imgs_real)
+        plt.axis(False)
+        plt.show()
 
     view_result_images(gen_0, disc_0, 180, 20)
 
