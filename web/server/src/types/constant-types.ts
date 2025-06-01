@@ -6,16 +6,16 @@ import type {
 } from "./global-types";
 
 export const onnxGanNames: TOnnxGanNames[] = [
-    "DCGAN_MNIST_v0",
+    "DCGAN_MNIST_v1",
     "GAN_simple_v4",
     "DCGAN_Cats_v0"
 ] as const;
 
 export const onnxCganNames: TOnnxCganNames[] = [
-    "CDCGAN_MNIST_v0",
-    "CDCGAN_Cats_v0",
-    "CDCGAN_Animal_Faces_v4",
-    "CDCGAN_FashionMNIST_v0"
+    "CDCGAN_MNIST_v3",
+    "CDCGAN_Cats_v1",
+    "CDCGAN_Animal_Faces_v7",
+    "CDCGAN_FashionMNIST_v2"
 ] as const;
 
 export const onnxGanModels: TGanModel = {
@@ -24,7 +24,7 @@ export const onnxGanModels: TGanModel = {
         inShape: [1, 1, 28, 28],
         outShape: [1, 1, 28, 28]
     },
-    DCGAN_MNIST_v0: {
+    DCGAN_MNIST_v1: {
         imgSize: 28,
         inShape: [1, 100, 1, 1],
         outShape: [1, 1, 28, 28]
@@ -37,7 +37,7 @@ export const onnxGanModels: TGanModel = {
 };
 
 export const onnxCganModels: TCganModel = {
-    CDCGAN_MNIST_v0: {
+    CDCGAN_MNIST_v3: {
         imgSize: 28,
         inShape: [1, 100, 1, 1],
         outShape: [1, 1, 28, 28],
@@ -55,21 +55,21 @@ export const onnxCganModels: TCganModel = {
             "9": "9 - nine"
         }
     },
-    CDCGAN_Cats_v0: {
-        imgSize: 64,
+    CDCGAN_Cats_v1: {
+        imgSize: 128,
         inShape: [1, 100, 1, 1],
         outShape: [1, 3, 64, 64],
         numClasses: 2,
         classes: { "0": "cats", "1": "dogs" }
     },
-    CDCGAN_Animal_Faces_v4: {
+    CDCGAN_Animal_Faces_v7: {
         imgSize: 128,
         inShape: [1, 100, 1, 1],
         outShape: [1, 3, 128, 128],
         numClasses: 3,
         classes: { "0": "cat", "1": "dog", "2": "wild" }
     },
-    CDCGAN_FashionMNIST_v0: {
+    CDCGAN_FashionMNIST_v2: {
         imgSize: 28,
         inShape: [1, 100, 1, 1],
         outShape: [1, 1, 28, 28],

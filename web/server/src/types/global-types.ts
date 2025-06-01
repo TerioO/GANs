@@ -7,12 +7,12 @@ export interface IMsgResponse {
     message: string;
 }
 
-export type TOnnxGanNames = "GAN_simple_v4" | "DCGAN_MNIST_v0" | "DCGAN_Cats_v0";
+export type TOnnxGanNames = "GAN_simple_v4" | "DCGAN_MNIST_v1" | "DCGAN_Cats_v0";
 export type TOnnxCganNames =
-    | "CDCGAN_MNIST_v0"
-    | "CDCGAN_Cats_v0"
-    | "CDCGAN_Animal_Faces_v4"
-    | "CDCGAN_FashionMNIST_v0";
+    | "CDCGAN_MNIST_v3"
+    | "CDCGAN_Cats_v1"
+    | "CDCGAN_Animal_Faces_v7"
+    | "CDCGAN_FashionMNIST_v2";
 
 interface GanModelData {
     imgSize: number;

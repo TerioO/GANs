@@ -117,6 +117,7 @@ defineExpose({ canvas, canvasModal });
     </div>
     <Dialog
       v-model:visible="modalVis"
+      @update:visible="$emit('toggleModal')"
       modal
       header="Image"
       :style="{ width: '90vw', height: '90vh' }"
