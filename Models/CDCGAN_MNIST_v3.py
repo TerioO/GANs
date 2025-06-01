@@ -439,7 +439,7 @@ def main():
         plt.axis(False)
         plt.show()
 
-    view_result_images(gen_0, disc_0, 180, 20)
+    view_result_images(gen_0, disc_0, 100, 10)
 
     def export_onnx(gen: nn.Module):
         gen.to(device)
@@ -487,11 +487,16 @@ def main():
     # test_gan(gen_0, disc_0)
     
     def get_GAN_score():
+        json_log = helpers.read_json_log(filenames["dir"], filenames["gan"])
         metric_type = "FID"
         print(f"Computing {metric_type}...")
-        score = helpers.metric_eval(gen_0, train_dataloader, device, 20, metric_type)
-        print(f"{metric_type}: {score}")
+        score = helpers.metric_eval(gen_0, train_dataloader, device, 100000, metric_type)
+        print(f"[Epoch: {json_log['epochs']}] {metric_type}: {score}")    
+    get_GAN_score()
+
+    # [Epoch: 125] IS: 2.1220061779022217
+    # [Epoch: 125] KID: 0.0012322544353082776
+    # [Epoch: 125] FID: 1.9060726165771484
     
-    # get_GAN_score()
 
 main()

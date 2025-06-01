@@ -436,18 +436,16 @@ def main():
               epochs_to_save_at=50)
 
     def view_result_images(gen: nn.Module,
-                           disc: nn.Module,
                            N: int = 16,
                            nrow: int = 4):
         gen.to(device)
-        disc.to(device)
         gen.eval()
-        disc.eval()
         
         imgs, labels = next(iter(train_dataloader))
         noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         labels = torch.arange(0, gen.num_classes, dtype=torch.int).repeat(math.ceil(N/gen.num_classes))
         labels = torch.IntTensor(labels[:N]).to(device) 
+        labels = torch.IntTensor(torch.ones(N, dtype=torch.int)).to(device)
         with torch.inference_mode():
             imgs = gen(noise, labels)
             imgs = torchvision.utils.make_grid(imgs, nrow=nrow, normalize=True)
@@ -458,8 +456,16 @@ def main():
         plt.imshow(imgs_grid)
         plt.axis(False)
         plt.show()
-            
-    view_result_images(gen_0, disc_0, 180, 18)
+    
+        # imgs_real = helpers.make_grid_with_labels_in_order(16, train_dataloader, gen.num_classes)
+        # imgs_real = torchvision.utils.make_grid(imgs_real, nrow=4, normalize=True)
+        # imgs_real = torch.as_tensor(imgs_real).permute(1, 2, 0).detach().cpu().numpy()
+        # plt.figure(figsize=(16,9))
+        # plt.suptitle("Real Images")
+        # plt.imshow(imgs_real)
+        # plt.axis(False)
+        # plt.show()
+    view_result_images(gen_0, 10, 10)
     
     def export_onnx(gen: nn.Module):
         gen.to(device)
@@ -497,6 +503,18 @@ def main():
         pred = disc(img_fake, labels)
         print(f"pred.shape = {pred.shape}")
 
-    test_gan(gen_0, disc_0)
+    # test_gan(gen_0, disc_0)
+    
+    def get_GAN_score():
+        json_log = helpers.read_json_log(filenames["dir"], filenames["gan"])
+        metric_type = "IS"
+        print(f"Computing {metric_type}...")
+        score = helpers.metric_eval(gen_0, train_dataloader, device, 100000, metric_type)
+        print(f"[Epoch: {json_log['epochs']}] {metric_type}: {score}")    
+    # get_GAN_score()
+
+    # [Epoch: 400] FID: 163.5313720703125
+    # [Epoch: 400] KID: 0.13373897969722748
+    # [Epoch: 400] IS: 5.380917549133301
 
 main()

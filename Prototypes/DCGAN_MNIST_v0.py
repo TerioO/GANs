@@ -374,32 +374,25 @@ def main():
               skip=True)
 
     def view_result_images(gen: nn.Module,
-                           disc: nn.Module,
-                           rows: int,
-                           cols: int):
-        img, _ = next(iter(train))
-        img = torch.as_tensor(img, device=device)
-        plt.figure(figsize=(16, 9))
-        plt.suptitle("Certainty that an image is real (90% --> REAL, 50% --> UNSURE, 10% --> FAKE)")
+                           N: int = 16,
+                           nrow: int = 4):
         gen.to(device)
-        disc.to(device)
         gen.eval()
-        disc.eval()
+
+        imgs, _ = next(iter(train_dataloader))
+        noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         with torch.inference_mode():
-            for i in range(rows*cols):
-                noise = torch.randn(1, gen.input_channels, 1, 1).to(device)
-                img_fake = gen(noise)         # img_fake.shape = [1, gen.output_channels(1), 28, 28]
-                certainty = disc(img_fake)    # certainty.shape = [1, 1]
-                certainty = certainty.item()
+            imgs = gen(noise)
+            imgs = torchvision.utils.make_grid(imgs, nrow=nrow, normalize=True)
+            imgs_grid = torch.as_tensor(imgs).permute(1, 2, 0).detach().cpu().numpy()
                 
-                img_plt = img_fake.view(28, 28).cpu().numpy()
-                plt.subplot(rows, cols, i+1)
-                plt.imshow(img_plt, cmap="gray")
-                plt.title(f"{certainty*100:.2f}%")
-                plt.axis(False)
-            plt.show()
-            
-    # view_result_images(gen_0, disc_0, 5, 5)
+        plt.figure(figsize=(16, 9))
+        plt.suptitle("Generated Images")
+        plt.imshow(imgs_grid)
+        plt.axis(False)
+        plt.show()
+
+    view_result_images(gen_0, 100, 10)
 
     def export_onnx(gen: nn.Module):
         input = torch.randn([1,100,1,1]).to(device)
@@ -415,7 +408,7 @@ def main():
                               "input": { 0: "batch_size" },
                               "output": { 0: "batch_size" }
                           })
-    # export_onnx(gen_0)
+    export_onnx(gen_0)
 
     def test_gan(gen: nn.Module, disc: nn.Module):
         gen.to(device)
@@ -430,7 +423,7 @@ def main():
         pred = disc(img_fake)   # [N, 1]
         print(pred.shape)
         
-    # test_gan(gen_0, disc_0)
+    test_gan(gen_0, disc_0)
     
     def get_GAN_score():
         json_log = helpers.read_json_log(filenames["dir"], filenames["gan"])
@@ -439,10 +432,10 @@ def main():
         score = helpers.metric_eval(gen_0, train_dataloader, device, 100000, metric_type, cgan=False)
         print(f"[Epoch: {json_log['epochs']}] {metric_type}: {score}")
     
-    get_GAN_score()
+    # get_GAN_score()
     
     # [Epoch: 402] KID: 0.0018081760499626398
     # [Epoch: 402] FID: 4.294966697692871
+    # [Epoch: 402] IS: 2.1747374534606934
     
-
 main()
