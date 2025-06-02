@@ -35,6 +35,8 @@ export async function evalOnnxModelGAN(modelName: TOnnxGanNames, batchSize: numb
         imgSize: onnxGanModels[modelName].imgSize
     };
 
+    await session.release();
+
     return res;
 }
 
@@ -78,6 +80,8 @@ export async function evalOnnxModelCGAN(modelName: TOnnxCganNames, batchSize: nu
         numClasses: onnxCganModels[modelName].numClasses,
         classes: onnxCganModels[modelName].classes
     };
+
+    await session.release();
 
     return res;
 }
