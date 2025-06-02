@@ -6,7 +6,7 @@
     "build": "tsc && copyfiles src/assets/*.onnx dist --up 1",
     "format": "prettier --write \"src/**/*.{js,ts}\"",
     "dev": "cross-env NODE_ENV=dev nodemon ./src/server.ts",
-    "prod": "cross-env NODE_ENV=prod node ./dist/server.js"
+    "prod": "cross-env NODE_ENV=prod node --max-old-space-size=470 ./dist/server.js"
   },
   "keywords": [],
   "author": "",
