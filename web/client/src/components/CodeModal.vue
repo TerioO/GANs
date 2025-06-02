@@ -35,10 +35,17 @@ const modalVisible = ref(false);
           style: {
             height: '100%'
           }
+        },
+        title: {
+          style: {
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis'
+          }
         }
       }"
     >
-      <highlightjs :autodetect="false" language="python" :code="code" ></highlightjs>
+      <highlightjs :autodetect="false" language="python" :code="code"></highlightjs>
     </Dialog>
   </div>
 </template>
