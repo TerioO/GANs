@@ -19,6 +19,7 @@ export const errorHandler = (
         apiError.message = error.message;
     } else if (error instanceof Error) {
         if (env.NODE_ENV == "dev") console.log(error);
+        if (env.NODE_ENV === "prod") console.log(error.message);
     }
     res.status(statusCode).json(apiError);
     if (env.NODE_ENV == "dev") console.log(error);
