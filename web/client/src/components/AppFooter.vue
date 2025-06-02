@@ -2,7 +2,7 @@
 <template>
   <footer class="">
     <div class="container">
-      <p class="text-xs text-gray-600 p-2">Last deploy: 15-04-2025</p>
+      <p class="text-xs text-gray-600 p-2">Last deploy: 02-06-2025</p>
     </div>
   </footer>
 </template>
