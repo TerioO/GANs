@@ -439,7 +439,7 @@ def main():
     print("\n")
     
     train_GAN(filenames=filenames,
-              epochs=200,
+              epochs=20,
               device=device,
               dataloader_train=train_dataloader,
               gen=gen_0,

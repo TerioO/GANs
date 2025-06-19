@@ -478,7 +478,7 @@ def main():
         noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         labels = torch.arange(0, gen.num_classes, dtype=torch.int).repeat(math.ceil(N/gen.num_classes))
         labels = torch.IntTensor(labels[:N]).to(device) 
-        labels = torch.IntTensor(torch.ones(N, dtype=torch.int) * 2).to(device)
+        labels = torch.IntTensor(torch.zeros(N, dtype=torch.int)).to(device)
         with torch.inference_mode():
             imgs = gen(noise, labels)
             imgs = torchvision.utils.make_grid(imgs, nrow=nrow, normalize=True)
