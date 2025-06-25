@@ -376,7 +376,7 @@ def get_gpu_info(returnType: Literal["dict", "string"]):
     >>> gpu = "GPU: ... | NAME: ... | COMPUTE: ..."
     """
 
-    if not torch.cuda.is_available(): return
+    if not torch.cuda.is_available(): return None
     gpu = {}
     gpu_props = torch.cuda.get_device_properties()
     gpu["name"] = gpu_props.name
