@@ -47,7 +47,7 @@ function generate() {
 }
 
 function toggleModal() {
-  modalVisible.value = !modalVisible.value;
+  // modalVisible.value = !modalVisible.value;
 }
 </script>
 <template>

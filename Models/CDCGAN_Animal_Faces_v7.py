@@ -468,7 +468,7 @@ def main():
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
                            N: int = 16,
-                           nrow: int = 4):
+                           nrow: int = 4,):
         gen.to(device)
         disc.to(device)
         gen.eval()
@@ -478,7 +478,7 @@ def main():
         noise = torch.randn(N, gen.input_channels, 1, 1).to(device)
         labels = torch.arange(0, gen.num_classes, dtype=torch.int).repeat(math.ceil(N/gen.num_classes))
         labels = torch.IntTensor(labels[:N]).to(device) 
-        labels = torch.IntTensor(torch.zeros(N, dtype=torch.int)).to(device)
+        labels = torch.IntTensor(torch.ones(N, dtype=torch.int) * 2).to(device)
         with torch.inference_mode():
             imgs = gen(noise, labels)
             imgs = torchvision.utils.make_grid(imgs, nrow=nrow, normalize=True)
@@ -490,15 +490,15 @@ def main():
         plt.axis(False)
         plt.show()  
         
-        # imgs_real = helpers.make_grid_with_labels_in_order(36, train_dataloader, gen.num_classes)
-        # imgs_real = torchvision.utils.make_grid(imgs_real, nrow=6, normalize=True)
-        # imgs_real = torch.as_tensor(imgs_real).permute(1, 2, 0).detach().cpu().numpy()
-        # plt.figure(figsize=(16,9))
-        # plt.suptitle("Real Images")
-        # plt.imshow(imgs_real)
-        # plt.axis(False)
-        # plt.show()
-    view_result_images(gen_0, disc_0, 16, 4)
+        imgs_real = helpers.make_grid_with_labels_in_order(N, train_dataloader, gen.num_classes)
+        imgs_real = torchvision.utils.make_grid(imgs_real, nrow=nrow, normalize=True)
+        imgs_real = torch.as_tensor(imgs_real).permute(1, 2, 0).detach().cpu().numpy()
+        plt.figure(figsize=(16,9))
+        plt.suptitle("Real Images")
+        plt.imshow(imgs_real)
+        plt.axis(False)
+        plt.show()
+    view_result_images(gen_0, disc_0, 16, 4, )
     
     def export_onnx(gen: nn.Module):
         gen.to(device)
@@ -517,7 +517,7 @@ def main():
                               "labels": { 0: "batch_size" },
                               "output": { 0: "batch_size" }
                           })
-    export_onnx(gen_0)
+    # export_onnx(gen_0)
 
     def test_gan(gen: nn.Module, disc: nn.Module):
         print("\n[TEST]\n")

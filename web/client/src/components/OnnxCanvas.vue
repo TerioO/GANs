@@ -111,7 +111,7 @@ defineExpose({ canvas, canvasModal });
     <div v-show="!loading && data" class="mt-9 relative overflow-x-auto max-w-[80vw]">
       <canvas
         ref="canvas"
-        class="cursor-pointer"
+        class=""
         @click="$emit('toggleModal')"
       ></canvas>
     </div>
