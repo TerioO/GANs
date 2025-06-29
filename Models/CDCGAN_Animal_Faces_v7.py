@@ -468,7 +468,7 @@ def main():
     def view_result_images(gen: nn.Module,
                            disc: nn.Module,
                            N: int = 16,
-                           nrow: int = 4,):
+                           nrow: int = 4):
         gen.to(device)
         disc.to(device)
         gen.eval()
