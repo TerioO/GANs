@@ -265,7 +265,7 @@ def save_or_load_model_checkpoint(mode: Literal["save", "load"], dir: str, filen
                 print(
                     f"Model state dict couldn't be loaded, state dict doesn't exist at: {path}")
             return
-        loaded_checkpoint: ModelCheckpoint = torch.load(path, weights_only=True)
+        loaded_checkpoint: ModelCheckpoint = torch.load(path, weights_only=True, map_location=device)
         # Prevents device mismatch for the optimizer when loading
         model.to(device)
         model.load_state_dict(loaded_checkpoint["model_state_dict"])
