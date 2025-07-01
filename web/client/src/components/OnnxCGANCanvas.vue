@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import { reactive, ref, computed, useTemplateRef } from "vue";
+import { onnxCganModels } from "../types/api-constant-types";
+import type { TOnnxCganNames } from "../types/api-types";
 import Button from "primevue/button";
 import InputNumber from "primevue/inputnumber";
 import Slider from "primevue/slider";
@@ -7,6 +9,7 @@ import OnnxCanvas from "./OnnxCanvas.vue";
 
 interface Props {
   loading: boolean;
+  modelName: TOnnxCganNames;
   data: {
     tensor: any[];
     dims: readonly number[];
@@ -15,7 +18,13 @@ interface Props {
   } | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const maxBatchSize = computed(() =>
+  import.meta.env.DEV
+    ? onnxCganModels[props.modelName].maxBatchSize.dev
+    : onnxCganModels[props.modelName].maxBatchSize.prod
+);
 
 const emit = defineEmits<{
   (e: "generate", batchSize: number, label: number): void;
@@ -32,7 +41,7 @@ const form = reactive({
 const modalVisible = ref(false);
 
 const invalidBatchSize = computed(() => {
-  return form.batchSize < 0 || form.batchSize > 64;
+  return form.batchSize < 0 || form.batchSize > maxBatchSize.value;
 });
 
 const canvasScale = computed(() => {
@@ -61,7 +70,7 @@ function toggleModal() {
           :invalid="invalidBatchSize"
         />
         <p v-if="invalidBatchSize" class="absolute -bottom-6 text-red-500 text-sm">
-          Values between [1,64]
+          Values between [1,{{ maxBatchSize }}]
         </p>
       </div>
       <div class="flex flex-col gap-1 relative">

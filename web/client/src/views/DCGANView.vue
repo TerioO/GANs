@@ -65,6 +65,7 @@ function generateDCGAN_CATS_v0(batchSize: number) {
       <h2 class="text-xl font-bold mb-4">DCGAN_MNIST_v1</h2>
       <div class="ml-4">
         <OnnxGANCanvas
+          :model-name="'DCGAN_MNIST_v1'"
           :loading="DCGAN_MNIST_v1.req.loading"
           :data="data_DCGAN_MNIST_v1"
           @generate="generateDCGAN_MNIST_v0"
@@ -85,6 +86,7 @@ function generateDCGAN_CATS_v0(batchSize: number) {
       <h2 class="text-xl font-bold mb-4">DCGAN_CATS_v0</h2>
       <div class="ml-4">
         <OnnxGANCanvas
+          :model-name="'DCGAN_Cats_v0'"
           :loading="DCGAN_CATS_v0.req.loading"
           :data="data_DCGAN_CATS_v0"
           @generate="generateDCGAN_CATS_v0"

@@ -45,6 +45,7 @@ function generateGanSimpleV4(batchSize: number) {
       <h2 class="text-xl font-bold mb-4">GAN_simple_v4 - MNIST</h2>
       <div class="ml-4">
         <OnnxGANCanvas
+          :model-name="'GAN_simple_v4'"
           :loading="req.loading"
           :data="data"
           @generate="generateGanSimpleV4"

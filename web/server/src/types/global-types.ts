@@ -18,6 +18,10 @@ interface GanModelData {
     imgSize: number;
     outShape: number[];
     inShape: number[];
+    maxBatchSize: {
+      dev: number;
+      prod: number;
+    }
 }
 
 interface CganModelData extends GanModelData {
@@ -38,7 +42,7 @@ export interface IOnnxGanRequest {
     res: {
         tensor: any[];
         dims: readonly number[];
-    } & GanModelData;
+    } & Omit<GanModelData, "maxBatchSize">;
 }
 
 export interface IOnnxCganRequest {
@@ -50,5 +54,5 @@ export interface IOnnxCganRequest {
     res: {
         tensor: any[];
         dims: readonly number[];
-    } & CganModelData;
+    } & Omit<CganModelData, "maxBatchSize">;
 }

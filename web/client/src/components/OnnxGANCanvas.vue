@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { reactive, ref, computed, useTemplateRef } from "vue";
+import { onnxGanModels } from "../types/api-constant-types";
+import type { TOnnxGanNames } from "../types/api-types";
 import Button from "primevue/button";
 import InputNumber from "primevue/inputnumber";
 import Slider from "primevue/slider";
 import OnnxCanvas from "./OnnxCanvas.vue";
 
 interface Props {
+  modelName: TOnnxGanNames;
   loading: boolean;
   data: {
     tensor: any[];
@@ -15,7 +18,13 @@ interface Props {
   } | null;
 }
 
-defineProps<Props>();
+const props = defineProps<Props>();
+
+const maxBatchSize = computed(() =>
+  import.meta.env.DEV
+    ? onnxGanModels[props.modelName].maxBatchSize.dev
+    : onnxGanModels[props.modelName].maxBatchSize.prod
+);
 
 const emit = defineEmits<{
   (e: "generate", batchSize: number): void;
@@ -31,7 +40,7 @@ const form = reactive({
 const modalVisible = ref(false);
 
 const invalidBatchSize = computed(() => {
-  return form.batchSize < 0 || form.batchSize > 64;
+  return form.batchSize < 0 || form.batchSize > maxBatchSize.value;
 });
 
 const canvasScale = computed(() => {
@@ -60,7 +69,7 @@ function toggleModal() {
           :invalid="invalidBatchSize"
         />
         <p v-if="invalidBatchSize" class="absolute -bottom-6 text-red-500 text-sm">
-          Values between [1,64]
+          Values between [1,{{maxBatchSize}}]
         </p>
       </div>
       <Button

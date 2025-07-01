@@ -89,6 +89,7 @@ function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
       <h2 class="text-xl font-bold mb-4">CDCGAN_Animal_Faces_v7</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
+          :model-name="'CDCGAN_Animal_Faces_v7'"
           :loading="CGANS['CDCGAN_Animal_Faces_v7'].req.req.loading"
           :data="CGANS['CDCGAN_Animal_Faces_v7'].data.value"
           @generate="(b, l) => generate(b, l, 'CDCGAN_Animal_Faces_v7')"
@@ -118,6 +119,7 @@ function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
       <h2 class="text-xl font-bold mb-4">CDCGAN_FashionMNIST_v2</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
+          :model-name="'CDCGAN_FashionMNIST_v2'"
           :loading="CGANS['CDCGAN_FashionMNIST_v2'].req.req.loading"
           :data="CGANS['CDCGAN_FashionMNIST_v2'].data.value"
           @generate="(b, l) => generate(b, l, 'CDCGAN_FashionMNIST_v2')"
@@ -136,6 +138,7 @@ function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
       <h2 class="text-xl font-bold mb-4">CDCGAN_MNIST_v3</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
+          :model-name="'CDCGAN_MNIST_v3'"
           :loading="CGANS['CDCGAN_MNIST_v3'].req.req.loading"
           :data="CGANS['CDCGAN_MNIST_v3'].data.value"
           @generate="(b, l) => generate(b, l, 'CDCGAN_MNIST_v3')"
@@ -157,6 +160,7 @@ function generate(batchSize: number, label: number, modelName: TOnnxCganNames) {
       <h2 class="text-xl font-bold mb-4">CDCGAN_Cats_v1</h2>
       <div class="ml-4">
         <OnnxCGANCanvas
+          :model-name="'CDCGAN_Cats_v1'"
           :loading="CGANS['CDCGAN_Cats_v1'].req.req.loading"
           :data="CGANS['CDCGAN_Cats_v1'].data.value"
           @generate="(b, l) => generate(b, l, 'CDCGAN_Cats_v1')"
